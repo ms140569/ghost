@@ -1,0 +1,11 @@
+# adding binary zero to testfile:
+echo -n -e '\x00' >>connect.stomp
+
+# sending data to server using netcat:
+cat connect.stomp |nc -q 1 localhost 7777
+
+# dumping data:
+od -Ad -c connect.stomp
+
+# dump traffic using tcpdump:
+sudo tcpdump -i any port 1405 -A -l
