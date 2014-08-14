@@ -8,7 +8,6 @@ package main
 
 import (
 	"log"
-	"fmt"
 )
 
 %%{
@@ -64,8 +63,8 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 }
 
 func Scanner(content string) []Token {
-	fmt.Println("Scanner--------------------------------------");
-    fmt.Println(string(content));
+	log.Println("Scanner--------------------------------------");
+    log.Println(string(content));
 
 	tokenArray := []Token {}
 
@@ -77,6 +76,6 @@ func Scanner(content string) []Token {
 }
 
 func emitToken(token Token, tokenArray *[]Token) {
-	log.Printf("emitToken: %s", token)
+	// log.Printf("emitToken: %s", token)
 	*tokenArray = append(*tokenArray, token)
 }
