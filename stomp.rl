@@ -2,18 +2,13 @@
 
 Lexer for STOMP protocol, see http://stomp.github.io/
 
-   ragel -Z -T0 -o stomp.go stomp.rl
-   go build -o stomp stomp.go
-   ./stomp
-
 */
 
 package main
 
 import (
-        // "os"
-        "fmt"
-	// "io/ioutil"
+	"log"
+	"fmt"
 )
 
 %%{
@@ -40,30 +35,25 @@ func stomp_lexer(data string) {
 		client_commands = "SEND" | "SUBSCRIBE" | "UNSUBSCRIBE" | "BEGIN" | "COMMIT" | "ABORT" | "ACK" | "NACK" | "DISCONNECT" | "CONNECT" | "STOMP";
 		server_commands = "CONNECTED" | "MESSAGE" | "RECEIPT" | "ERROR";
 
-		action mark {
-			fmt.Println("Mark action");
-		}
-
-		action write_command {
-			fmt.Println("Write command action");
-		}
-
 		main := |*
 
 			client_commands => {
 			    command := data[ts:te];
-			    fmt.Println("Found client command: " + command); 
-			    fmt.Println("CMD:", CommandForString(command));
+			        emitToken(Token{name: COMMAND, value: CommandForString(command)}) 
 				};
 
-		    server_commands => { fmt.Println("Found server command: ") };
+			server_commands => {
+			    command := data[ts:te];
+			        emitToken(Token{name: COMMAND, value: CommandForString(command)}) 
+				};
+
 		
-			NULL => { fmt.Println("Found NULL") };
-		    EOL => { fmt.Println("Found EOL") };
-		    COLON => { fmt.Println("Found COLON") };
-		    OCTET => { fmt.Println("Found OCTET") };
-		    HEADER => { fmt.Println("Found Header: " + data[ts:te]) };
-		    STRING => { fmt.Println("Found String: " + data[ts:te]) };
+		    NULL => { emitToken(Token{name: NULL, value: nil})};
+     		EOL => { emitToken(Token{name: EOL, value: nil}) };
+	    	COLON => { emitToken(Token{name: COLON, value: nil}) };
+		    OCTET => { emitToken(Token{name: OCTET, value: nil}) };
+		    HEADER => { emitToken(Token{name: HEADER, value: data[ts:te]}) };
+		    STRING => { emitToken(Token{name: STRING, value: data[ts:te]}) };
 
 		*|;
 
@@ -75,11 +65,13 @@ func stomp_lexer(data string) {
 }
 
 func Scanner(content string) {
-
-     fmt.Println("Scanner");
-
-     fmt.Println(string(content));
+	fmt.Println("Scanner--------------------------------------");
+    fmt.Println(string(content));
 
 	stomp_lexer(content);
 
+}
+
+func emitToken(token Token) {
+	log.Printf("emitToken: %s", token)
 }
