@@ -1,43 +1,42 @@
 package main
 
 import (
-    "fmt"
 	"flag"
-	"strconv"
-	"net"
+	"fmt"
 	"log"
+	"net"
+	"strconv"
 )
 
 var port = flag.Int("port", 7777, "TCP port to listen on")
 
-const DefaultBufferSize int = 4096;
+const DefaultBufferSize int = 4096
 
-const GhostVersionLine string = "Ghost v0.0";
+const GhostVersionLine string = "Ghost v0.0"
 
-var GhostPortAsString string;
-
+var GhostPortAsString string
 
 func produceServerGreeting() string {
-	return fmt.Sprintf(GhostVersionLine + " running on port: %s", GhostPortAsString);
+	return fmt.Sprintf(GhostVersionLine+" running on port: %s", GhostPortAsString)
 }
 
 func main() {
 	flag.Parse()
 	GhostPortAsString = strconv.Itoa(*port)
 
-    fmt.Println(produceServerGreeting()+ "\n");
+	fmt.Println(produceServerGreeting() + "\n")
 
-	listener, err := net.Listen("tcp", ":" + GhostPortAsString);
- 
+	listener, err := net.Listen("tcp", ":"+GhostPortAsString)
+
 	if err != nil {
-		log.Fatal("Unable to Listen on port " + GhostPortAsString , err);
+		log.Fatal("Unable to Listen on port "+GhostPortAsString, err)
 	}
 
 	for {
-		conn, err := listener.Accept();
+		conn, err := listener.Accept()
 
 		if err != nil {
-			log.Println("Problem ", err);
+			log.Println("Problem ", err)
 			continue
 		}
 
@@ -47,30 +46,30 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
-	log.Println("Connection Handler invoked");
+	log.Println("Connection Handler invoked")
 
-    buffer := make([]byte, DefaultBufferSize); 
+	buffer := make([]byte, DefaultBufferSize)
 
-	conn.Write([]byte(produceServerGreeting()+ "\n"));
+	conn.Write([]byte(produceServerGreeting() + "\n"))
 
 	for {
 		n, err := conn.Read(buffer)
 		if err != nil || n == 0 {
 			conn.Close()
-            break
+			break
 		}
 		n, err = conn.Write(buffer[0:n])
 		if err != nil {
 			conn.Close()
-            break
+			break
 		}
 
 		if len(buffer) > 0 {
-			Scanner(string(buffer));
+			Scanner(string(buffer))
 		}
 
 	}
 
-    log.Printf("Connection from %v closed.", conn.RemoteAddr())
+	log.Printf("Connection from %v closed.", conn.RemoteAddr())
 
 }
