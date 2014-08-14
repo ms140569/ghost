@@ -10,7 +10,7 @@ all: $(TARGET_DIR)/$(BIN_NAME)
 TMP_FILES = $(SCANNER_FILE)
 SRC = main.go command.go
 
-$(TARGET_DIR)/$(BIN_NAME): fmt $(SCANNER_FILE)
+$(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)
 	go build -o $(BIN_NAME) $(SCANNER_FILE) $(SRC)
 
 .PHONY: clean

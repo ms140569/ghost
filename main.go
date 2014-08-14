@@ -58,13 +58,19 @@ func handleConnection(conn net.Conn) {
 			conn.Close()
 			break
 		}
-		n, err = conn.Write(buffer[0:n])
+		log.Printf("Read returned that much bytes:%d", n)
+		buffer = buffer[0:n]
+
+
+		n, err = conn.Write([]byte("Thanks for the data.\n"))
+
 		if err != nil {
 			conn.Close()
 			break
 		}
 
 		if len(buffer) > 0 {
+			log.Printf("Getting that much data:%d", len(buffer))
 			Scanner(string(buffer))
 		}
 
