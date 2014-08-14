@@ -67,11 +67,10 @@ func handleConnection(conn net.Conn) {
 		if err != nil {
 			conn.Close()
 			break
-		}
+		}  
 
 		if len(buffer) > 0 {
-			log.Printf("Getting that much data:%d", len(buffer))
-			Scanner(string(buffer))
+			ParseFrames(buffer)
 		}
 
 	}
