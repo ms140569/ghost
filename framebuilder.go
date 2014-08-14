@@ -1,9 +1,9 @@
 package main
 
 func ParseFrames(data []byte) []Frame {
-    frames := []Frame {}
+	frames := []Frame{}
 
 	Scanner(string(data))
-	
-	return frames;
+
+	return frames
 }
