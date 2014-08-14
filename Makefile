@@ -10,12 +10,16 @@ all: $(TARGET_DIR)/$(BIN_NAME)
 TMP_FILES = $(SCANNER_FILE)
 SRC = main.go command.go
 
-$(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE)
+$(TARGET_DIR)/$(BIN_NAME): fmt $(SCANNER_FILE)
 	go build -o $(BIN_NAME) $(SCANNER_FILE) $(SRC)
 
 .PHONY: clean
 clean:
 	$(RM) -rf $(TARGET_DIR)/$(BIN_NAME) $(TMP_FILES)
+
+.PHONY: fmt
+fmt:
+	go fmt
 
 $(SCANNER_FILE): stomp.rl
 	ragel -Z -T0 -o $(SCANNER_FILE) stomp.rl 
