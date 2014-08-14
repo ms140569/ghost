@@ -16,7 +16,7 @@ import (
         write data;
 }%%
 
-func stomp_lexer(data string) {
+func stomp_lexer(data string, tokenArray *[]Token) {
 	// These variables need to be predefined to get the ragel scanner running, 
     // see section 6.3 of the ragel userguide.
 	act, ts, te, cs, p, pe, eof := 0, 0, 0, 0, 0, len(data), len(data);
@@ -39,21 +39,20 @@ func stomp_lexer(data string) {
 
 			client_commands => {
 			    command := data[ts:te];
-			        emitToken(Token{name: COMMAND, value: CommandForString(command)}) 
+			    emitToken(Token{name: COMMAND, value: CommandForString(command)}, tokenArray) 
 				};
 
 			server_commands => {
 			    command := data[ts:te];
-			        emitToken(Token{name: COMMAND, value: CommandForString(command)}) 
+				emitToken(Token{name: COMMAND, value: CommandForString(command)}, tokenArray) 
 				};
-
 		
-		    NULL => { emitToken(Token{name: NULL, value: nil})};
-     		EOL => { emitToken(Token{name: EOL, value: nil}) };
-	    	COLON => { emitToken(Token{name: COLON, value: nil}) };
-		    OCTET => { emitToken(Token{name: OCTET, value: nil}) };
-		    HEADER => { emitToken(Token{name: HEADER, value: data[ts:te]}) };
-		    STRING => { emitToken(Token{name: STRING, value: data[ts:te]}) };
+		NULL =>   { emitToken(Token{name: NULL, value: nil}, tokenArray)};
+		EOL =>    { emitToken(Token{name: EOL, value: nil}, tokenArray) };
+		COLON =>  { emitToken(Token{name: COLON, value: nil}, tokenArray) };
+		OCTET =>  { emitToken(Token{name: OCTET, value: nil}, tokenArray) };
+		HEADER => { emitToken(Token{name: HEADER, value: data[ts:te]}, tokenArray) };
+		STRING => { emitToken(Token{name: STRING, value: data[ts:te]}, tokenArray) };
 
 		*|;
 
@@ -64,14 +63,20 @@ func stomp_lexer(data string) {
 
 }
 
-func Scanner(content string) {
+func Scanner(content string) []Token {
 	fmt.Println("Scanner--------------------------------------");
     fmt.Println(string(content));
 
-	stomp_lexer(content);
+	tokenArray := []Token {}
 
+	stomp_lexer(content, &tokenArray);
+
+	log.Printf("Token appended, len: %d", len(tokenArray))
+
+	return tokenArray;
 }
 
-func emitToken(token Token) {
+func emitToken(token Token, tokenArray *[]Token) {
 	log.Printf("emitToken: %s", token)
+	*tokenArray = append(*tokenArray, token)
 }
