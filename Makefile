@@ -8,10 +8,10 @@ BACKUP_FILE=$(BASENAME)-$(NOW_STRING).tar.gz
 all: $(TARGET_DIR)/$(BIN_NAME)
 
 TMP_FILES = $(SCANNER_FILE)
-SRC = main.go command.go framebuilder.go frame.go token.go
+SRC = main.go command.go framebuilder.go frame.go token.go constants/constants.go
 
 $(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)
-	go build -o $(BIN_NAME) $(SCANNER_FILE) $(SRC)
+	go build -o $(BIN_NAME)
 
 .PHONY: clean
 clean:

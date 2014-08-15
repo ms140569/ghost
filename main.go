@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/ms140569/ghost/constants"
 	"log"
 	"net"
 	"strconv"
@@ -10,14 +11,10 @@ import (
 
 var port = flag.Int("port", 7777, "TCP port to listen on")
 
-const DefaultBufferSize int = 4096
-
-const GhostVersionLine string = "Ghost v0.0"
-
 var GhostPortAsString string
 
 func produceServerGreeting() string {
-	return fmt.Sprintf(GhostVersionLine+" running on port: %s", GhostPortAsString)
+	return fmt.Sprintf(constants.GhostServerName+" version "+constants.GhostVersionNumber+" running on port: %s", GhostPortAsString)
 }
 
 func main() {
@@ -48,7 +45,7 @@ func main() {
 func handleConnection(conn net.Conn) {
 	log.Println("Connection Handler invoked")
 
-	buffer := make([]byte, DefaultBufferSize)
+	buffer := make([]byte, constants.DefaultBufferSize)
 
 	conn.Write([]byte(produceServerGreeting() + "\n"))
 
