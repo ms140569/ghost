@@ -11,4 +11,3 @@ func main() {
 	flag.Parse()
 	server.Server(*port)
 }
-
