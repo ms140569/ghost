@@ -4,7 +4,7 @@ Lexer for STOMP protocol, see http://stomp.github.io/
 
 */
 
-package main
+package parser
 
 import (
 	"log"

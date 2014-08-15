@@ -1,5 +1,6 @@
 BIN_NAME = ghostd
 TARGET_DIR=.
+PARSER_DIR=parser
 SCANNER_FILE=stomp.go
 BASENAME=$(shell basename ${PWD})
 NOW_STRING=$(shell date +%Y%m%d-%H%M)
@@ -8,7 +9,7 @@ BACKUP_FILE=$(BASENAME)-$(NOW_STRING).tar.gz
 all: $(TARGET_DIR)/$(BIN_NAME)
 
 TMP_FILES = $(SCANNER_FILE)
-SRC = main.go command.go framebuilder.go frame.go token.go constants/constants.go
+SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DIR)/frame.go $(PARSER_DIR)/token.go constants/constants.go server/server.go
 
 $(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)
 	go build -o $(BIN_NAME)
@@ -21,8 +22,8 @@ clean:
 fmt:
 	go fmt
 
-$(SCANNER_FILE): stomp.rl
-	ragel -Z -T0 -o $(SCANNER_FILE) stomp.rl 
+$(SCANNER_FILE): $(PARSER_DIR)/stomp.rl
+	ragel -Z -T0 -o $(PARSER_DIR)/$(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
 
 backup: clean
 	(cd .. ; tar czvf $(BACKUP_FILE) $(BASENAME) ; cd -)
