@@ -1,7 +1,7 @@
 BIN_NAME = ghostd
 TARGET_DIR=.
 PARSER_DIR=parser
-SCANNER_FILE=stomp.go
+SCANNER_FILE=$(PARSER_DIR)/stomp.go
 BASENAME=$(shell basename ${PWD})
 NOW_STRING=$(shell date +%Y%m%d-%H%M)
 BACKUP_FILE=$(BASENAME)-$(NOW_STRING).tar.gz
@@ -23,7 +23,7 @@ fmt:
 	go fmt
 
 $(SCANNER_FILE): $(PARSER_DIR)/stomp.rl
-	ragel -Z -T0 -o $(PARSER_DIR)/$(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
+	ragel -Z -T0 -o $(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
 
 backup: clean
 	(cd .. ; tar czvf $(BACKUP_FILE) $(BASENAME) ; cd -)
