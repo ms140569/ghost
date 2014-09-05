@@ -1,26 +1,32 @@
 package parser
 
 import (
+	"errors"
 	"log"
 	"time"
-	"errors"
 )
 
 // see: go/src/pkg/text/template/parse/lex.go
 // or: http://rspace.googlecode.com/hg/slide/lex.html#landing-slide
 
 type parser struct {
-	pos    int
-	state  stateFn
-	tokens *[]Token
-	frames *[]Frame
+	pos       int
+	state     stateFn
+	tokens    *[]Token
+	frames    *[]Frame
 	startTime time.Time
-	err error
+	err       error
 }
 
 type stateFn func(*parser) stateFn
 
 func (p *parser) next() Token {
+
+	if p.pos >= len(*p.tokens) {
+		log.Println("EOF reached")
+		return Token{name: EOF}
+	}
+
 	localTokens := *p.tokens
 	tok := localTokens[p.pos]
 	p.pos = p.pos + 1
@@ -50,14 +56,46 @@ func getCommandState(p *parser) stateFn {
 	}
 
 	*p.frames = append(*p.frames, Frame{command: token.value.(Cmd)})
- 
+
+	// swallow EOL token to move on to the headers ...
+	// FIXME: this ought to be done in the grammar file
+	token = p.next()
+
+	if token.name != EOL {
+		p.err = errors.New("No EOL afer STOMP command found.")
+		return badExit
+	}
+
 	return getHeadersState
 }
 
 func getHeadersState(p *parser) stateFn {
 	log.Println("In getHeadersState")
-	log.Printf("Next Token would be: %s", p.next())
+
+	token := p.next()
+
+	if token.name == EOL {
+		log.Println("Empty header set found. Moving on to data section.")
+		return saveDataState
+	}
+
+	for token.name == HEADER {
+		log.Printf("Header found: %s", token)
+		token = p.next()
+		if token.name == EOL {
+			return saveDataState
+		}
+	}
+
+	p.err = errors.New("Headers corrupt.")
+	return badExit
+}
+
+func saveDataState(p *parser) stateFn {
+	log.Println("saveDataState()")
+	log.Printf("Next token: %s", p.next())
 	return goodExit
+
 }
 
 func badExit(p *parser) stateFn {

@@ -11,6 +11,7 @@ const (
 	OCTET
 	EOL
 	COLON
+	EOF
 )
 
 type Token struct {
@@ -36,6 +37,9 @@ func (t Token) String() string {
 		return "EOL"
 	case COLON:
 		return "COLON"
+	case EOF:
+		return "EOF"
+
 	}
 
 	return "Token not recognized"
