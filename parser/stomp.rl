@@ -33,18 +33,14 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 
 		client_commands = "SEND" | "SUBSCRIBE" | "UNSUBSCRIBE" | "BEGIN" | "COMMIT" | "ABORT" | "ACK" | "NACK" | "DISCONNECT" | "CONNECT" | "STOMP";
 		server_commands = "CONNECTED" | "MESSAGE" | "RECEIPT" | "ERROR";
+		all_commands = client_commands | server_commands;
 
 		main := |*
 
-			client_commands => {
-			    command := data[ts:te];
-			    emitToken(Token{name: COMMAND, value: CommandForString(command)}, tokenArray) 
-				};
-
-			server_commands => {
-			    command := data[ts:te];
-				emitToken(Token{name: COMMAND, value: CommandForString(command)}, tokenArray) 
-				};
+		all_commands => {
+		    command := data[ts:te];
+		    emitToken(Token{name: COMMAND, value: CommandForString(command)}, tokenArray) 
+			};
 		
 		NULL =>   { emitToken(Token{name: NULL, value: nil}, tokenArray)};
 		EOL =>    { emitToken(Token{name: EOL, value: nil}, tokenArray) };
