@@ -1,5 +1,7 @@
 package parser
 
+// import "strconv"
+
 type Name int
 
 const (
@@ -16,10 +18,14 @@ const (
 
 type Token struct {
 	name  Name
+	nextPos int // position of next byte to read *after* this token.
 	value interface{}
 }
 
 func (t Token) String() string {
+
+	// nextPositionAsString := " ,nextPos = " + strconv.Itoa(t.nextPos) 
+
 	switch t.name {
 	case COMMAND:
 		return "COMMAND: " + (t.value.(Cmd)).String()

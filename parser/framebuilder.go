@@ -33,6 +33,17 @@ func (p *parser) next() Token {
 	return tok
 }
 
+func (p *parser) nextPos() (int, error) {
+	if p.pos > 0 {
+		localTokens := *p.tokens
+		tok := localTokens[(p.pos - 1)]
+		return tok.nextPos, nil;
+	} else {
+		return 0, errors.New("Could not get next position.")
+	}
+
+}
+
 func (p *parser) run() {
 	for state := startState; state != nil; {
 		state = state(p)
@@ -93,8 +104,16 @@ func getHeadersState(p *parser) stateFn {
 
 func saveDataState(p *parser) stateFn {
 	log.Println("saveDataState()")
-	log.Printf("Next token: %s", p.next())
-	return goodExit
+
+	pos, err := p.nextPos()
+
+	if err == nil {
+		log.Printf("Data position: %d", pos)
+		return goodExit
+	} else {
+		p.err = err
+		return badExit
+	}
 
 }
 
@@ -107,6 +126,7 @@ func badExit(p *parser) stateFn {
 
 func goodExit(p *parser) stateFn {
 	log.Println("goodExit()")
+	dumpTokens(*p.tokens)
 	return cleanupAndExitMachine
 }
 
@@ -134,7 +154,10 @@ func ParseFrames(data []byte) []Frame {
 }
 
 func dumpTokens(tokens []Token) {
-	for _, token := range tokens {
-		log.Printf("%s\n", token)
+	log.Printf("***********************************************")
+	for number, token := range tokens {
+		log.Printf("%d:%s\n", number, token)
 	}
+
+	log.Printf("***********************************************")
 }

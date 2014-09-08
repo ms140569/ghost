@@ -39,15 +39,15 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 
 		all_commands => {
 		    command := data[ts:te];
-		    emitToken(Token{name: COMMAND, value: CommandForString(command)}, tokenArray) 
+		emitToken(Token{name: COMMAND, value: CommandForString(command), nextPos: te}, tokenArray) 
 			};
 		
-		NULL =>   { emitToken(Token{name: NULL, value: nil}, tokenArray)};
-		EOL =>    { emitToken(Token{name: EOL, value: nil}, tokenArray) };
-		COLON =>  { emitToken(Token{name: COLON, value: nil}, tokenArray) };
-		OCTET =>  { emitToken(Token{name: OCTET, value: nil}, tokenArray) };
-		HEADER => { emitToken(Token{name: HEADER, value: data[ts:te]}, tokenArray) };
-		STRING => { emitToken(Token{name: STRING, value: data[ts:te]}, tokenArray) };
+		NULL =>   { emitToken(Token{name: NULL, value: nil, nextPos: te}, tokenArray)};
+		EOL =>    { emitToken(Token{name: EOL, value: nil, nextPos: te}, tokenArray) };
+		COLON =>  { emitToken(Token{name: COLON, value: nil, nextPos: te}, tokenArray) };
+		OCTET =>  { emitToken(Token{name: OCTET, value: nil, nextPos: te}, tokenArray) };
+		HEADER => { emitToken(Token{name: HEADER, value: data[ts:te], nextPos: te}, tokenArray) };
+		STRING => { emitToken(Token{name: STRING, value: data[ts:te], nextPos: te}, tokenArray) };
 
 		*|;
 
