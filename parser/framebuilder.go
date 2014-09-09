@@ -156,7 +156,7 @@ func ParseFrames(data []byte) []Frame {
 func dumpTokens(tokens []Token) {
 	log.Printf("***********************************************")
 	for number, token := range tokens {
-		log.Printf("%d:%s\n", number, token)
+		log.Printf("%02d:%04d:%s\n", number, token.nextPos, token)
 	}
 
 	log.Printf("***********************************************")

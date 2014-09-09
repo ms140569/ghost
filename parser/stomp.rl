@@ -22,14 +22,13 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 
 	var _, _, _ = act, ts, te; // This is to disable go's variable-declared-but-not-used error.
 
+	numberOfEOLs := 0
+
 	%%{
-		NULL = "\0";
 		EOL = "\r"? . "\n";
-		
 		COLON = ":";
 		STRING = /[a-zA-Z0-9\+\-\.]/+;
 		HEADER = STRING . COLON . STRING? . EOL; 
-		OCTET = any;
 
 		client_commands = "SEND" | "SUBSCRIBE" | "UNSUBSCRIBE" | "BEGIN" | "COMMIT" | "ABORT" | "ACK" | "NACK" | "DISCONNECT" | "CONNECT" | "STOMP";
 		server_commands = "CONNECTED" | "MESSAGE" | "RECEIPT" | "ERROR";
@@ -39,15 +38,18 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 
 		all_commands => {
 		    command := data[ts:te];
-		emitToken(Token{name: COMMAND, value: CommandForString(command), nextPos: te}, tokenArray) 
+		    emitToken(Token{name: COMMAND, value: CommandForString(command), nextPos: te}, tokenArray) 
 			};
 		
-		NULL =>   { emitToken(Token{name: NULL, value: nil, nextPos: te}, tokenArray)};
-		EOL =>    { emitToken(Token{name: EOL, value: nil, nextPos: te}, tokenArray) };
-		COLON =>  { emitToken(Token{name: COLON, value: nil, nextPos: te}, tokenArray) };
-		OCTET =>  { emitToken(Token{name: OCTET, value: nil, nextPos: te}, tokenArray) };
+		EOL =>    { 
+			numberOfEOLs += 1
+			emitToken(Token{name: EOL, value: nil, nextPos: te}, tokenArray) 
+			if numberOfEOLs == 2 { // the second EOL marks the end of the header section. Data ought not to be slurped by the scanner.
+				return
+			}
+		};
+
 		HEADER => { emitToken(Token{name: HEADER, value: data[ts:te], nextPos: te}, tokenArray) };
-		STRING => { emitToken(Token{name: STRING, value: data[ts:te], nextPos: te}, tokenArray) };
 
 		*|;
 
@@ -72,6 +74,5 @@ func Scanner(content string) []Token {
 }
 
 func emitToken(token Token, tokenArray *[]Token) {
-	// log.Printf("emitToken: %s", token)
 	*tokenArray = append(*tokenArray, token)
 }
