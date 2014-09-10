@@ -15,7 +15,7 @@ import (
         write data;
 }%%
 
-func stomp_lexer(data string, tokenArray *[]Token) {
+func stomp_lexer(data []byte, tokenArray *[]Token) {
 	// These variables need to be predefined to get the ragel scanner running, 
     // see section 6.3 of the ragel userguide.
 	act, ts, te, cs, p, pe, eof := 0, 0, 0, 0, 0, len(data), len(data);
@@ -38,7 +38,7 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 
 		all_commands => {
 		    command := data[ts:te];
-		    emitToken(Token{name: COMMAND, value: CommandForString(command), nextPos: te}, tokenArray) 
+		    emitToken(Token{name: COMMAND, value: CommandForString(string(command)), nextPos: te}, tokenArray) 
 			};
 		
 		EOL =>    { 
@@ -49,7 +49,7 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 			}
 		};
 
-		HEADER => { emitToken(Token{name: HEADER, value: data[ts:te], nextPos: te}, tokenArray) };
+		HEADER => { emitToken(Token{name: HEADER, value: string(data[ts:te]), nextPos: te}, tokenArray) };
 
 		*|;
 
@@ -60,7 +60,7 @@ func stomp_lexer(data string, tokenArray *[]Token) {
 
 }
 
-func Scanner(content string) []Token {
+func Scanner(content [] byte) []Token {
 	log.Println("Scanner--------------------------------------");
     log.Println(string(content));
 

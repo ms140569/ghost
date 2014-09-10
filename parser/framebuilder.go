@@ -140,7 +140,7 @@ func cleanupAndExitMachine(p *parser) stateFn {
 func ParseFrames(data []byte) []Frame {
 	frames := []Frame{}
 
-	tokens := Scanner(string(data))
+	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
 		log.Println("Received no tokens, something is broken")
