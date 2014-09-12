@@ -20,6 +20,20 @@ type parser struct {
 
 type stateFn func(*parser) stateFn
 
+func (p *parser) getLastFrame() (Frame, error) {
+	numberOfFrames := len(*p.frames)
+
+	log.Printf("Number of frames: %d", numberOfFrames)
+
+	if numberOfFrames < 1 {
+		return Frame{}, errors.New("There is no last frame.")
+	} else {
+		lFrames := *p.frames
+		frame := lFrames[numberOfFrames-1]
+		return frame, nil
+	}
+}
+
 func (p *parser) next() Token {
 
 	if p.pos >= len(*p.tokens) {
@@ -37,7 +51,7 @@ func (p *parser) nextPos() (int, error) {
 	if p.pos > 0 {
 		localTokens := *p.tokens
 		tok := localTokens[(p.pos - 1)]
-		return tok.nextPos, nil;
+		return tok.nextPos, nil
 	} else {
 		return 0, errors.New("Could not get next position.")
 	}
@@ -92,6 +106,14 @@ func getHeadersState(p *parser) stateFn {
 
 	for token.name == HEADER {
 		log.Printf("Header found: %s", token)
+		lastFrame, err := p.getLastFrame()
+
+		if err != nil {
+			lastFrame.addHeader(token.String())
+		} else {
+			log.Printf("Could not find last Frame.")
+		}
+
 		token = p.next()
 		if token.name == EOL {
 			return saveDataState
@@ -134,6 +156,10 @@ func cleanupAndExitMachine(p *parser) stateFn {
 	log.Println("cleanupAndExitMachine()")
 	log.Printf("Buffer parse-time: %v", time.Now().Sub(p.startTime))
 	log.Printf("Number of Frames decoded: %d", len(*p.frames))
+
+	lastFrame, _ := p.getLastFrame()
+
+	log.Printf("Number of headers of last Frame: %d", len(lastFrame.headers))
 	return nil
 }
 
