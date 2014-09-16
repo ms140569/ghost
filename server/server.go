@@ -6,16 +6,9 @@ import (
 	"github.com/ms140569/ghost/constants"
 	"log"
 	"net"
-	"strconv"
 	"os"
 	"io/ioutil"
 )
-
-var GhostPortAsString string
-
-func produceServerGreeting() string {
-	return fmt.Sprintf(constants.GhostServerName+" version "+constants.GhostVersionNumber+" running on port: %s", GhostPortAsString)
-}
 
 func Server(config Config) {
 
@@ -32,15 +25,12 @@ func Server(config Config) {
 		os.Exit(-1)
 	}
 
+	fmt.Println(config.ServerGreeting + "\n")
 
-	GhostPortAsString = strconv.Itoa(config.Port)
-
-	fmt.Println(produceServerGreeting() + "\n")
-
-	listener, err := net.Listen("tcp", ":"+GhostPortAsString)
+	listener, err := net.Listen("tcp", ":"+config.GhostPortAsString)
 
 	if err != nil {
-		log.Fatal("Unable to Listen on port "+GhostPortAsString, err)
+		log.Fatal("Unable to Listen on port "+config.GhostPortAsString, err)
 	}
 
 	for {
@@ -51,17 +41,17 @@ func Server(config Config) {
 			continue
 		}
 
-		go handleConnection(conn)
+		go handleConnection(config.ServerGreeting, conn)
 	}
 
 }
 
-func handleConnection(conn net.Conn) {
+func handleConnection(greeting string, conn net.Conn) {
 	log.Println("Connection Handler invoked")
 
 	buffer := make([]byte, constants.DefaultBufferSize)
 
-	conn.Write([]byte(produceServerGreeting() + "\n"))
+	conn.Write([]byte(greeting + "\n"))
 
 	for {
 		n, err := conn.Read(buffer)
