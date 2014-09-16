@@ -1,0 +1,2 @@
+- skip over EOL after frame terminator NULL.
+- get the whole framebuilder right.

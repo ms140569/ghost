@@ -5,9 +5,13 @@ import (
 	"github.com/ms140569/ghost/server"
 )
 
-var port = flag.Int("port", 7777, "TCP port to listen on")
-
 func main() {
+	var port = flag.Int("p", 7777, "TCP port to listen on")
+	var filename = flag.String("t", "", "Filename for tests")
+
 	flag.Parse()
-	server.Server(*port)
+
+	config := server.NewConfig(*port, *filename)
+
+	server.Server(config)
 }

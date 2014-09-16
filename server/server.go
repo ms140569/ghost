@@ -7,6 +7,8 @@ import (
 	"log"
 	"net"
 	"strconv"
+	"os"
+	"io/ioutil"
 )
 
 var GhostPortAsString string
@@ -15,9 +17,23 @@ func produceServerGreeting() string {
 	return fmt.Sprintf(constants.GhostServerName+" version "+constants.GhostVersionNumber+" running on port: %s", GhostPortAsString)
 }
 
-func Server(listenPort int) {
+func Server(config Config) {
 
-	GhostPortAsString = strconv.Itoa(listenPort)
+	if config.Testmode {
+		log.Printf("Running in testmode, using file: %s", config.Filename)
+
+		buffer, err := ioutil.ReadFile(config.Filename)
+
+		if err != nil {
+			log.Fatal("Error reading file: %s", err)
+		}
+
+		parser.ParseFrames(buffer) 
+		os.Exit(-1)
+	}
+
+
+	GhostPortAsString = strconv.Itoa(config.Port)
 
 	fmt.Println(produceServerGreeting() + "\n")
 
