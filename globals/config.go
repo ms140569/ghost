@@ -16,9 +16,9 @@ type Configuration struct {
 	ServerGreeting string
 }
 
-func NewConfig(port int, filename string) {
+func NewConfig(port int, filename string, testmode bool) {
 
-	Config = Configuration{port, filename, false, "", ""}
+	Config = Configuration{port, filename, testmode, "", ""}
 
 	if len(filename) > 0 {
 		Config.Testmode = true

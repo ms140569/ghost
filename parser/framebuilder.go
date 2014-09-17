@@ -4,6 +4,8 @@ import (
 	"errors"
 	"log"
 	"time"
+	"github.com/ms140569/ghost/globals"
+	"os"
 )
 
 // see: go/src/pkg/text/template/parse/lex.go
@@ -160,6 +162,11 @@ func cleanupAndExitMachine(p *parser) stateFn {
 	lastFrame, _ := p.getLastFrame()
 
 	log.Printf("Number of headers of last Frame: %d", len(lastFrame.headers))
+
+	if globals.Config.Testmode {
+		log.Printf("Running in testmode, exit.")
+		os.Exit(-1)
+	}
 
 	return nil
 }

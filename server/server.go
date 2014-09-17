@@ -12,7 +12,7 @@ import (
 
 func Server() {
 
-	if globals.Config.Testmode {
+	if globals.Config.Testmode && len(globals.Config.Filename) > 0 {
 		log.Printf("Running in testmode, using file: %s", globals.Config.Filename)
 
 		buffer, err := ioutil.ReadFile(globals.Config.Filename)
