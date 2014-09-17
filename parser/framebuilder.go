@@ -160,6 +160,7 @@ func cleanupAndExitMachine(p *parser) stateFn {
 	lastFrame, _ := p.getLastFrame()
 
 	log.Printf("Number of headers of last Frame: %d", len(lastFrame.headers))
+
 	return nil
 }
 

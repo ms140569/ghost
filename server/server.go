@@ -3,19 +3,19 @@ package server
 import (
 	"fmt"
 	"github.com/ms140569/ghost/parser"
-	"github.com/ms140569/ghost/constants"
+	"github.com/ms140569/ghost/globals"
 	"log"
 	"net"
 	"os"
 	"io/ioutil"
 )
 
-func Server(config Config) {
+func Server() {
 
-	if config.Testmode {
-		log.Printf("Running in testmode, using file: %s", config.Filename)
+	if globals.Config.Testmode {
+		log.Printf("Running in testmode, using file: %s", globals.Config.Filename)
 
-		buffer, err := ioutil.ReadFile(config.Filename)
+		buffer, err := ioutil.ReadFile(globals.Config.Filename)
 
 		if err != nil {
 			log.Fatal("Error reading file: %s", err)
@@ -25,12 +25,12 @@ func Server(config Config) {
 		os.Exit(-1)
 	}
 
-	fmt.Println(config.ServerGreeting + "\n")
+	fmt.Println(globals.Config.ServerGreeting + "\n")
 
-	listener, err := net.Listen("tcp", ":"+config.GhostPortAsString)
+	listener, err := net.Listen("tcp", ":"+globals.Config.GhostPortAsString)
 
 	if err != nil {
-		log.Fatal("Unable to Listen on port "+config.GhostPortAsString, err)
+		log.Fatal("Unable to Listen on port "+globals.Config.GhostPortAsString, err)
 	}
 
 	for {
@@ -41,7 +41,7 @@ func Server(config Config) {
 			continue
 		}
 
-		go handleConnection(config.ServerGreeting, conn)
+		go handleConnection(globals.Config.ServerGreeting, conn)
 	}
 
 }
@@ -49,7 +49,7 @@ func Server(config Config) {
 func handleConnection(greeting string, conn net.Conn) {
 	log.Println("Connection Handler invoked")
 
-	buffer := make([]byte, constants.DefaultBufferSize)
+	buffer := make([]byte, globals.DefaultBufferSize)
 
 	conn.Write([]byte(greeting + "\n"))
 
