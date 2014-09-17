@@ -17,20 +17,20 @@ const (
 )
 
 type Token struct {
-	name  Name
+	name    Name
 	nextPos int // position of next byte to read *after* this token.
-	value interface{}
+	value   interface{}
 }
 
 func (t Token) String() string {
 
-	// nextPositionAsString := " ,nextPos = " + strconv.Itoa(t.nextPos) 
+	// nextPositionAsString := " ,nextPos = " + strconv.Itoa(t.nextPos)
 
 	switch t.name {
 	case COMMAND:
 		return "COMMAND: " + (t.value.(Cmd)).String()
 	case HEADER:
-		return "HEADER: " + t.value.(string)
+		return t.value.(string)
 	case DATA:
 		return "DATA, length:" + string(len(t.value.([]byte)))
 	case NULL:

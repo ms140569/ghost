@@ -2,10 +2,10 @@ package parser
 
 import (
 	"errors"
-	"log"
-	"time"
 	"github.com/ms140569/ghost/globals"
+	"log"
 	"os"
+	"time"
 )
 
 // see: go/src/pkg/text/template/parse/lex.go
@@ -22,17 +22,17 @@ type parser struct {
 
 type stateFn func(*parser) stateFn
 
-func (p *parser) getLastFrame() (Frame, error) {
+func (p *parser) getLastFrame() (*Frame, error) {
 	numberOfFrames := len(*p.frames)
 
 	log.Printf("Number of frames: %d", numberOfFrames)
 
 	if numberOfFrames < 1 {
-		return Frame{}, errors.New("There is no last frame.")
+		return &Frame{}, errors.New("There is no last frame.")
 	} else {
+		log.Printf("Fetching frame...")
 		lFrames := *p.frames
-		frame := lFrames[numberOfFrames-1]
-		return frame, nil
+		return &lFrames[numberOfFrames-1], nil
 	}
 }
 
@@ -110,7 +110,7 @@ func getHeadersState(p *parser) stateFn {
 		log.Printf("Header found: %s", token)
 		lastFrame, err := p.getLastFrame()
 
-		if err != nil {
+		if err == nil {
 			lastFrame.addHeader(token.String())
 		} else {
 			log.Printf("Could not find last Frame.")
@@ -163,6 +163,8 @@ func cleanupAndExitMachine(p *parser) stateFn {
 
 	log.Printf("Number of headers of last Frame: %d", len(lastFrame.headers))
 
+	lastFrame.dumpHeaders()
+
 	if globals.Config.Testmode {
 		log.Printf("Running in testmode, exit.")
 		os.Exit(-1)
@@ -190,7 +192,15 @@ func ParseFrames(data []byte) []Frame {
 func dumpTokens(tokens []Token) {
 	log.Printf("***********************************************")
 	for number, token := range tokens {
-		log.Printf("%02d:%04d:%s\n", number, token.nextPos, token)
+
+		var prefix string = ""
+
+		switch token.name {
+		case HEADER:
+			prefix = "HEADER :"
+		}
+
+		log.Printf("%02d:%04d:%s%s\n", number, token.nextPos, prefix, token)
 	}
 
 	log.Printf("***********************************************")
