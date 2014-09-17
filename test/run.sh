@@ -1,39 +1,42 @@
 #!/bin/bash
-PORT=7777
 
 declare -A protocolTests
 
 protocolTests=( 
-								["connect-and-send"]="CONNECTED"
-								["connect-and-send-with-receipt"]="CONNECTED"
-								["connect"]="CONNECTED"
-								["connect-too-many-headers"]="ERROR"
-								["connect-with-data"]="ERROR"
-								["connect-without-both-mandatory"]="ERROR"
-								["connect-header-key-too-long"]="ERROR"
-								["connect-header-val-too-long"]="ERROR"
-								["connect-disconnect"]="RECEIPT"
-								["connect-disconnect-send"]="ERROR"
-								["garbage10k"]="ERROR"   
-								["garbage"]="ERROR"
-								["stomp"]="CONNECTED"
-								["send-with-receipt"]="ERROR"
-								["stomp-with-data"]="ERROR"
-								["header-corrupt1"]="ERROR" 
-								["invalid-message"]="ERROR"
-								["plain-connect"]="CONNECTED"
-								)
+    ["connect-and-send"]=0
+	["connect-and-send-with-receipt"]=0
+	["connect"]=0
+	["connect-too-many-headers"]=-1
+	["connect-with-data"]=-1
+	["connect-without-both-mandatory"]=-1
+	["connect-header-key-too-long"]=-1
+	["connect-header-val-too-long"]=-1
+	["connect-disconnect"]=0
+	["connect-disconnect-send"]=-1
+	["garbage10k"]=-1   
+	["garbage"]=-1
+	["stomp"]=0
+	["send-with-receipt"]=-1
+	["stomp-with-data"]=-1
+	["header-corrupt1"]=-1 
+	["invalid-message"]=-1
+	["plain-connect"]=0
+)
 
-connectAndGrep() {
-        cat $1 |nc -q 1 localhost $PORT|grep -q ^$2 && return 0
-        return 1
+runTest() {
+    # cat $1 |nc -q 1 localhost $PORT|grep -q ^$2 && return 0
+    echo $1 $2
+    ./ghostd -f test/$1
+    return 0
 }
+
 
 for individualTest in "${!protocolTests[@]}" 
 do 
 	echo -n "$individualTest : "
-	if (connectAndGrep $individualTest.stomp ${protocolTests["$individualTest"]})
+	if (runTest $individualTest.stomp ${protocolTests["$individualTest"]})
 	then
+        
 		echo OK
 	else
 		echo FAIL
