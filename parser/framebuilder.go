@@ -167,7 +167,11 @@ func cleanupAndExitMachine(p *parser) stateFn {
 
 	if globals.Config.Testmode {
 		log.Printf("Running in testmode, exit.")
-		os.Exit(-1)
+		if p.err == nil {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
 	}
 
 	return nil

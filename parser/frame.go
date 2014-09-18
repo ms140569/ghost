@@ -16,8 +16,8 @@ type Frame struct {
 func (f *Frame) addHeader(header string) {
 	log.Printf("Adding header: |%s|", header)
 
-	header = strings.TrimSuffix(header, "\n")
 	header = strings.TrimSuffix(header, "\r\n")
+	header = strings.TrimSuffix(header, "\n")
 
 	log.Printf("Adding header trimmed: |%s|", header)
 
