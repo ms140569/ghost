@@ -7,7 +7,7 @@ Lexer for STOMP protocol, see http://stomp.github.io/
 package parser
 
 import (
-	"log"
+	"github.com/ms140569/ghost/log"
 )
 
 %%{

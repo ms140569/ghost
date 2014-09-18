@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"log"
+	"github.com/ms140569/ghost/log"
 	"strings"
 )
 

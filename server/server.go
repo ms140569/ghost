@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/ms140569/ghost/parser"
 	"github.com/ms140569/ghost/globals"
-	"log"
+	"github.com/ms140569/ghost/log"
 	"net"
 	"os"
 	"io/ioutil"

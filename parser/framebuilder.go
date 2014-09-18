@@ -3,7 +3,7 @@ package parser
 import (
 	"errors"
 	"github.com/ms140569/ghost/globals"
-	"log"
+	"github.com/ms140569/ghost/log"
 	"os"
 	"time"
 )
