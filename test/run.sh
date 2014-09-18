@@ -24,17 +24,17 @@ protocolTests=(
 )
 
 runTest() {
-    # cat $1 |nc -q 1 localhost $PORT|grep -q ^$2 && return 0
-    echo $1 $2
     ../ghostd -f $1 2>/dev/null 1>/dev/null
-    return 0
+    return $?
 }
-
 
 for individualTest in "${!protocolTests[@]}" 
 do 
-	echo -n "$individualTest : "
-	if (runTest $individualTest.stomp ${protocolTests["$individualTest"]})
+	echo -n $individualTest.stomp ": "
+    
+    runTest $individualTest.stomp
+
+	if [ $? -eq ${protocolTests["$individualTest"]} ]
 	then
         
 		echo OK
@@ -43,10 +43,3 @@ do
 	fi
 	
 done
-
-
-
-
-
-
-
