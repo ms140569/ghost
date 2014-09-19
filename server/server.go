@@ -12,12 +12,12 @@ import (
 func Server() {
 
 	if globals.Config.Testmode && len(globals.Config.Filename) > 0 {
-		log.Printf("Running in testmode, using file: %s", globals.Config.Filename)
+		log.Info("Running in testmode, using file: %s", globals.Config.Filename)
 
 		buffer, err := ioutil.ReadFile(globals.Config.Filename)
 
 		if err != nil {
-			log.Printf("Error reading file: %s", err)
+			log.Fatal("Error reading file: %s", err)
 			os.Exit(1)
 		}
 
@@ -25,12 +25,12 @@ func Server() {
 		os.Exit(0)
 	}
 
-	log.Printf(globals.Config.ServerGreeting + "\n")
+	log.Info(globals.Config.ServerGreeting + "\n")
 
 	listener, err := net.Listen("tcp", ":"+globals.Config.GhostPortAsString)
 
 	if err != nil {
-		log.Printf("Unable to Listen on port: %s"+globals.Config.GhostPortAsString, err)
+		log.Fatal("Unable to Listen on port: %s"+globals.Config.GhostPortAsString, err)
 		os.Exit(1)
 	}
 
@@ -38,7 +38,7 @@ func Server() {
 		conn, err := listener.Accept()
 
 		if err != nil {
-			log.Printf("Problem: %s", err)
+			log.Error("Problem: %s", err)
 			continue
 		}
 
@@ -48,7 +48,7 @@ func Server() {
 }
 
 func handleConnection(greeting string, conn net.Conn) {
-	log.Printf("Connection Handler invoked")
+	log.Debug("Connection Handler invoked")
 
 	buffer := make([]byte, globals.DefaultBufferSize)
 
@@ -60,7 +60,7 @@ func handleConnection(greeting string, conn net.Conn) {
 			conn.Close()
 			break
 		}
-		log.Printf("Read returned that much bytes:%d", n)
+		log.Debug("Read returned that much bytes:%d", n)
 		buffer = buffer[0:n]
 
 		n, err = conn.Write([]byte("Thanks for the data.\n"))
@@ -76,6 +76,6 @@ func handleConnection(greeting string, conn net.Conn) {
 
 	}
 
-	log.Printf("Connection from %v closed.", conn.RemoteAddr())
+	log.Debug("Connection from %v closed.", conn.RemoteAddr())
 
 }

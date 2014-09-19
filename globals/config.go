@@ -2,6 +2,7 @@ package globals
 
 import (
 	"fmt"
+	// "github.com/ms140569/ghost/log/level"
 	"strconv"
 )
 
@@ -9,11 +10,12 @@ import (
 var Config Configuration
 
 type Configuration struct {
-	Port int
-	Filename string
-	Testmode bool
+	Port              int
+	Filename          string
+	Testmode          bool
 	GhostPortAsString string
-	ServerGreeting string
+	ServerGreeting    string
+	// SystemLogLevel    level.Level
 }
 
 func NewConfig(port int, filename string, testmode bool) {
@@ -31,4 +33,3 @@ func NewConfig(port int, filename string, testmode bool) {
 func produceServerGreeting(GhostPortAsString string) string {
 	return fmt.Sprintf(GhostServerName+" version "+GhostVersionNumber+" running on port: %s", GhostPortAsString)
 }
-

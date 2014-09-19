@@ -61,14 +61,14 @@ func stomp_lexer(data []byte, tokenArray *[]Token) {
 }
 
 func Scanner(content [] byte) []Token {
-	log.Printf("Scanner--------------------------------------");
-    log.Printf(string(content));
+	log.Debug("Scanner--------------------------------------");
+    log.Debug(string(content));
 
 	tokenArray := []Token {}
 
 	stomp_lexer(content, &tokenArray);
 
-	log.Printf("Token appended, len: %d", len(tokenArray))
+	log.Debug("Token appended, len: %d", len(tokenArray))
 
 	return tokenArray;
 }

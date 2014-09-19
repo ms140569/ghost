@@ -25,12 +25,12 @@ type stateFn func(*parser) stateFn
 func (p *parser) getLastFrame() (*Frame, error) {
 	numberOfFrames := len(*p.frames)
 
-	log.Printf("Number of frames: %d", numberOfFrames)
+	log.Debug("Number of frames: %d", numberOfFrames)
 
 	if numberOfFrames < 1 {
 		return &Frame{}, errors.New("There is no last frame.")
 	} else {
-		log.Printf("Fetching frame...")
+		log.Debug("Fetching frame...")
 		lFrames := *p.frames
 		return &lFrames[numberOfFrames-1], nil
 	}
@@ -39,7 +39,7 @@ func (p *parser) getLastFrame() (*Frame, error) {
 func (p *parser) next() Token {
 
 	if p.pos >= len(*p.tokens) {
-		log.Printf("EOF reached")
+		log.Debug("EOF reached")
 		return Token{name: EOF}
 	}
 
@@ -67,14 +67,14 @@ func (p *parser) run() {
 }
 
 func startState(p *parser) stateFn {
-	log.Printf("Start parsing bufffer, recording time.")
+	log.Debug("Start parsing bufffer, recording time.")
 	p.startTime = time.Now()
 	p.frames = &[]Frame{} // initialize empty array of frames ( frames will be appended here in getCommandState )
 	return getCommandState
 }
 
 func getCommandState(p *parser) stateFn {
-	log.Printf("In getCommandState")
+	log.Debug("In getCommandState")
 	token := p.next()
 
 	if token.name != COMMAND {
@@ -97,23 +97,24 @@ func getCommandState(p *parser) stateFn {
 }
 
 func getHeadersState(p *parser) stateFn {
-	log.Printf("In getHeadersState")
+	log.Debug("In getHeadersState")
 
 	token := p.next()
 
 	if token.name == EOL {
-		log.Printf("Empty header set found. Moving on to data section.")
+		log.Debug("Empty header set found. Moving on to data section.")
 		return saveDataState
 	}
 
 	for token.name == HEADER {
-		log.Printf("Header found: %s", token)
+		log.Debug("Header found: %s", token)
 		lastFrame, err := p.getLastFrame()
 
 		if err == nil {
 			lastFrame.addHeader(token.String())
 		} else {
-			log.Printf("Could not find last Frame.")
+			log.Error("Could not find last Frame.")
+			return badExit
 		}
 
 		token = p.next()
@@ -127,12 +128,12 @@ func getHeadersState(p *parser) stateFn {
 }
 
 func saveDataState(p *parser) stateFn {
-	log.Printf("saveDataState()")
+	log.Debug("saveDataState()")
 
 	pos, err := p.nextPos()
 
 	if err == nil {
-		log.Printf("Data position: %d", pos)
+		log.Debug("Data position: %d", pos)
 		return goodExit
 	} else {
 		p.err = err
@@ -142,31 +143,31 @@ func saveDataState(p *parser) stateFn {
 }
 
 func badExit(p *parser) stateFn {
-	log.Printf("badExit()")
-	log.Printf("Parsing error, last problem: %s", p.err)
+	log.Error("badExit()")
+	log.Error("Parsing error, last problem: %s", p.err)
 	dumpTokens(*p.tokens)
 	return cleanupAndExitMachine
 }
 
 func goodExit(p *parser) stateFn {
-	log.Printf("goodExit()")
+	log.Debug("goodExit()")
 	dumpTokens(*p.tokens)
 	return cleanupAndExitMachine
 }
 
 func cleanupAndExitMachine(p *parser) stateFn {
-	log.Printf("cleanupAndExitMachine()")
-	log.Printf("Buffer parse-time: %v", time.Now().Sub(p.startTime))
-	log.Printf("Number of Frames decoded: %d", len(*p.frames))
+	log.Debug("cleanupAndExitMachine()")
+	log.Debug("Buffer parse-time: %v", time.Now().Sub(p.startTime))
+	log.Debug("Number of Frames decoded: %d", len(*p.frames))
 
 	lastFrame, _ := p.getLastFrame()
 
-	log.Printf("Number of headers of last Frame: %d", len(lastFrame.headers))
+	log.Debug("Number of headers of last Frame: %d", len(lastFrame.headers))
 
 	lastFrame.dumpHeaders()
 
 	if globals.Config.Testmode {
-		log.Printf("Running in testmode, exit.")
+		log.Info("Running in testmode, exit.")
 		if p.err == nil {
 			os.Exit(0)
 		} else {
@@ -183,7 +184,7 @@ func ParseFrames(data []byte) []Frame {
 	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
-		log.Printf("Received no tokens, something is broken")
+		log.Error("Received no tokens, something is broken")
 	}
 
 	parser := parser{pos: 0, state: startState, tokens: &tokens}
@@ -194,7 +195,7 @@ func ParseFrames(data []byte) []Frame {
 }
 
 func dumpTokens(tokens []Token) {
-	log.Printf("***********************************************")
+	log.Debug("***********************************************")
 	for number, token := range tokens {
 
 		var prefix string = ""
@@ -204,8 +205,8 @@ func dumpTokens(tokens []Token) {
 			prefix = "HEADER :"
 		}
 
-		log.Printf("%02d:%04d:%s%s\n", number, token.nextPos, prefix, token)
+		log.Debug("%02d:%04d:%s%s\n", number, token.nextPos, prefix, token)
 	}
 
-	log.Printf("***********************************************")
+	log.Debug("***********************************************")
 }

@@ -1,35 +1,42 @@
 package log
 
 import (
+	"github.com/ms140569/ghost/log/level"
 	"log"
 )
 
-type Level int
+var SystemLogLevel level.Level = level.Debug
 
-/*
-const (
-	Off Level = iota
-	Trace
-	Debug
-	Info
-	Warn
-	Error
-	Fatal
-	All
-)
-
-*/
-
-func Printf(format string, v ...interface{}) {
-	log.Printf(format, v...)
+func LeveledLogger(level level.Level, format string, v ...interface{}) {
+	if level >= SystemLogLevel {
+		log.Printf(level.String()+" : "+format, v...)
+	}
 }
 
-func Println(v ...interface{}) {
-	log.Println(v...)
+func Trace(format string, v ...interface{}) {
+	LeveledLogger(level.Trace, format, v...)
 }
 
-/*
-func Fatal(v ...interface{}) {
-	log.Fatal(v...)
+func Debug(format string, v ...interface{}) {
+	LeveledLogger(level.Debug, format, v...)
 }
-*/
+
+func Info(format string, v ...interface{}) {
+	LeveledLogger(level.Info, format, v...)
+}
+
+func Warn(format string, v ...interface{}) {
+	LeveledLogger(level.Warn, format, v...)
+}
+
+func Error(format string, v ...interface{}) {
+	LeveledLogger(level.Error, format, v...)
+}
+
+func Fatal(format string, v ...interface{}) {
+	LeveledLogger(level.Fatal, format, v...)
+}
+
+func All(format string, v ...interface{}) {
+	LeveledLogger(level.All, format, v...)
+}
