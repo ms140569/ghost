@@ -87,7 +87,6 @@ func getCommandState(p *parser) stateFn {
 	*p.frames = append(*p.frames, Frame{command: token.value.(Cmd)})
 
 	// swallow EOL token to move on to the headers ...
-	// FIXME: this ought to be done in the grammar file
 	token = p.next()
 
 	if token.name != EOL {
@@ -137,8 +136,7 @@ func saveDataState(p *parser) stateFn {
 	if err == nil {
 		log.Debug("Data position: %d", pos)
 
-		slice := p.data[pos:]
-		nullIdx := bytes.IndexByte(slice, 0x00) // look for 0x00 terminator
+		nullIdx := bytes.IndexByte(p.data[pos:], 0x00) // look for 0x00 terminator
 
 		if nullIdx == -1 {
 			p.err = errors.New("No null terminator found, bail out.")
