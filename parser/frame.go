@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"github.com/ms140569/ghost/log"
 	"strings"
 )
@@ -10,7 +11,7 @@ const Separator string = ":"
 type Frame struct {
 	command Cmd
 	headers map[string]string
-	data    []byte
+	payload bytes.Buffer
 }
 
 func (f *Frame) addHeader(header string) {

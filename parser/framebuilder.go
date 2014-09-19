@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"errors"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
@@ -18,6 +19,7 @@ type parser struct {
 	frames    *[]Frame
 	startTime time.Time
 	err       error
+	data      []byte
 }
 
 type stateFn func(*parser) stateFn
@@ -134,6 +136,26 @@ func saveDataState(p *parser) stateFn {
 
 	if err == nil {
 		log.Debug("Data position: %d", pos)
+
+		slice := p.data[pos:]
+		nullIdx := bytes.IndexByte(slice, 0x00) // look for 0x00 terminator
+
+		if nullIdx == -1 {
+			p.err = errors.New("No null terminator found, bail out.")
+			return badExit
+		}
+
+		log.Debug("NUL byte position: %d", nullIdx)
+
+		lastFrame, err := p.getLastFrame()
+
+		if err == nil {
+			lastFrame.payload.Write(p.data[pos : pos+nullIdx])
+		} else {
+			log.Error("Could not find last Frame.")
+			return badExit
+		}
+
 		return goodExit
 	} else {
 		p.err = err
@@ -163,6 +185,7 @@ func cleanupAndExitMachine(p *parser) stateFn {
 	lastFrame, _ := p.getLastFrame()
 
 	log.Debug("Number of headers of last Frame: %d", len(lastFrame.headers))
+	log.Debug("Number of payload: %d", lastFrame.payload.Len())
 
 	lastFrame.dumpHeaders()
 
@@ -179,7 +202,6 @@ func cleanupAndExitMachine(p *parser) stateFn {
 }
 
 func ParseFrames(data []byte) []Frame {
-	frames := []Frame{}
 
 	tokens := Scanner(data)
 
@@ -187,11 +209,11 @@ func ParseFrames(data []byte) []Frame {
 		log.Error("Received no tokens, something is broken")
 	}
 
-	parser := parser{pos: 0, state: startState, tokens: &tokens}
+	parser := parser{pos: 0, state: startState, tokens: &tokens, data: data}
 
 	parser.run()
 
-	return frames
+	return nil
 }
 
 func dumpTokens(tokens []Token) {
