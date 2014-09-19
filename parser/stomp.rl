@@ -61,8 +61,8 @@ func stomp_lexer(data []byte, tokenArray *[]Token) {
 }
 
 func Scanner(content [] byte) []Token {
-	log.Println("Scanner--------------------------------------");
-    log.Println(string(content));
+	log.Printf("Scanner--------------------------------------");
+    log.Printf(string(content));
 
 	tokenArray := []Token {}
 

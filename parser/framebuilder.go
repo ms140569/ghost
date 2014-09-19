@@ -39,7 +39,7 @@ func (p *parser) getLastFrame() (*Frame, error) {
 func (p *parser) next() Token {
 
 	if p.pos >= len(*p.tokens) {
-		log.Println("EOF reached")
+		log.Printf("EOF reached")
 		return Token{name: EOF}
 	}
 
@@ -67,14 +67,14 @@ func (p *parser) run() {
 }
 
 func startState(p *parser) stateFn {
-	log.Println("Start parsing bufffer, recording time.")
+	log.Printf("Start parsing bufffer, recording time.")
 	p.startTime = time.Now()
 	p.frames = &[]Frame{} // initialize empty array of frames ( frames will be appended here in getCommandState )
 	return getCommandState
 }
 
 func getCommandState(p *parser) stateFn {
-	log.Println("In getCommandState")
+	log.Printf("In getCommandState")
 	token := p.next()
 
 	if token.name != COMMAND {
@@ -97,12 +97,12 @@ func getCommandState(p *parser) stateFn {
 }
 
 func getHeadersState(p *parser) stateFn {
-	log.Println("In getHeadersState")
+	log.Printf("In getHeadersState")
 
 	token := p.next()
 
 	if token.name == EOL {
-		log.Println("Empty header set found. Moving on to data section.")
+		log.Printf("Empty header set found. Moving on to data section.")
 		return saveDataState
 	}
 
@@ -127,7 +127,7 @@ func getHeadersState(p *parser) stateFn {
 }
 
 func saveDataState(p *parser) stateFn {
-	log.Println("saveDataState()")
+	log.Printf("saveDataState()")
 
 	pos, err := p.nextPos()
 
@@ -142,20 +142,20 @@ func saveDataState(p *parser) stateFn {
 }
 
 func badExit(p *parser) stateFn {
-	log.Println("badExit()")
+	log.Printf("badExit()")
 	log.Printf("Parsing error, last problem: %s", p.err)
 	dumpTokens(*p.tokens)
 	return cleanupAndExitMachine
 }
 
 func goodExit(p *parser) stateFn {
-	log.Println("goodExit()")
+	log.Printf("goodExit()")
 	dumpTokens(*p.tokens)
 	return cleanupAndExitMachine
 }
 
 func cleanupAndExitMachine(p *parser) stateFn {
-	log.Println("cleanupAndExitMachine()")
+	log.Printf("cleanupAndExitMachine()")
 	log.Printf("Buffer parse-time: %v", time.Now().Sub(p.startTime))
 	log.Printf("Number of Frames decoded: %d", len(*p.frames))
 
@@ -183,7 +183,7 @@ func ParseFrames(data []byte) []Frame {
 	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
-		log.Println("Received no tokens, something is broken")
+		log.Printf("Received no tokens, something is broken")
 	}
 
 	parser := parser{pos: 0, state: startState, tokens: &tokens}

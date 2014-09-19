@@ -1,13 +1,12 @@
 package server
 
 import (
-	"fmt"
-	"github.com/ms140569/ghost/parser"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
+	"github.com/ms140569/ghost/parser"
+	"io/ioutil"
 	"net"
 	"os"
-	"io/ioutil"
 )
 
 func Server() {
@@ -18,26 +17,28 @@ func Server() {
 		buffer, err := ioutil.ReadFile(globals.Config.Filename)
 
 		if err != nil {
-			log.Fatal("Error reading file: %s", err)
+			log.Printf("Error reading file: %s", err)
+			os.Exit(1)
 		}
 
-		parser.ParseFrames(buffer) 
-		os.Exit(-1)
+		parser.ParseFrames(buffer)
+		os.Exit(0)
 	}
 
-	fmt.Println(globals.Config.ServerGreeting + "\n")
+	log.Printf(globals.Config.ServerGreeting + "\n")
 
 	listener, err := net.Listen("tcp", ":"+globals.Config.GhostPortAsString)
 
 	if err != nil {
-		log.Fatal("Unable to Listen on port "+globals.Config.GhostPortAsString, err)
+		log.Printf("Unable to Listen on port: %s"+globals.Config.GhostPortAsString, err)
+		os.Exit(1)
 	}
 
 	for {
 		conn, err := listener.Accept()
 
 		if err != nil {
-			log.Println("Problem ", err)
+			log.Printf("Problem: %s", err)
 			continue
 		}
 
@@ -47,7 +48,7 @@ func Server() {
 }
 
 func handleConnection(greeting string, conn net.Conn) {
-	log.Println("Connection Handler invoked")
+	log.Printf("Connection Handler invoked")
 
 	buffer := make([]byte, globals.DefaultBufferSize)
 
