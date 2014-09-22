@@ -16,6 +16,8 @@ func Server() {
 
 		buffer, err := ioutil.ReadFile(globals.Config.Filename)
 
+		log.Debug("Reading %d bytes", len(buffer))
+
 		if err != nil {
 			log.Fatal("Error reading file: %s", err)
 			os.Exit(1)
@@ -63,7 +65,10 @@ func handleConnection(greeting string, conn net.Conn) {
 		log.Debug("Read returned that much bytes:%d", n)
 		buffer = buffer[0:n]
 
-		n, err = conn.Write([]byte("Thanks for the data.\n"))
+		frame := parser.NewFrame(parser.CONNECTED)
+		frame.AddHeader("not-used:value")
+
+		n, err = conn.Write([]byte(frame.Render()))
 
 		if err != nil {
 			conn.Close()

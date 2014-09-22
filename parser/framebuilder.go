@@ -112,7 +112,7 @@ func getHeadersState(p *parser) stateFn {
 		lastFrame, err := p.getLastFrame()
 
 		if err == nil {
-			err := lastFrame.addHeader(token.String())
+			err := lastFrame.AddHeader(token.String())
 
 			if err != nil {
 				p.err = err
