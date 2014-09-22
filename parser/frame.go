@@ -2,6 +2,8 @@ package parser
 
 import (
 	"bytes"
+	"errors"
+	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"strings"
 )
@@ -14,28 +16,52 @@ type Frame struct {
 	payload bytes.Buffer
 }
 
-func (f *Frame) addHeader(header string) {
-	log.Debug("Adding header: |%s|", header)
-
+func (f *Frame) addHeader(header string) error {
 	header = strings.TrimSuffix(header, "\r\n")
 	header = strings.TrimSuffix(header, "\n")
 
-	log.Debug("Adding header trimmed: |%s|", header)
+	log.Debug("Adding header: |%s|", header)
 
 	if f.headers == nil {
 		log.Debug("Adding new header map")
 		f.headers = make(map[string]string)
 	}
 
-	if strings.HasSuffix(header, Separator) {
-		log.Debug("Adding header without value")
-		f.headers[strings.TrimSuffix(header, Separator)] = ""
-	} else {
-		arr := strings.Split(header, Separator)
-		log.Debug("Adding header with value")
-		f.headers[arr[0]] = arr[1]
+	// enforcing header related limitations.
+
+	if len(f.headers) >= globals.MaxHeaderSize {
+		return errors.New("Maximum number of headers reached")
 	}
 
+	if strings.HasSuffix(header, Separator) {
+		log.Debug("Adding header without value")
+
+		key := strings.TrimSuffix(header, Separator)
+
+		if len(key) > globals.MaxHaederKeyLength {
+			return errors.New("Header key too long.")
+		}
+
+		f.headers[key] = ""
+	} else {
+		arr := strings.Split(header, Separator)
+		key := arr[0]
+		val := arr[1]
+
+		log.Debug("Adding header with value")
+
+		if len(key) > globals.MaxHaederKeyLength {
+			return errors.New("Header key too long.")
+		}
+
+		if len(val) > globals.MaxHaederValLength {
+			return errors.New("Header value too long.")
+		}
+
+		f.headers[key] = val
+	}
+
+	return nil
 }
 
 func (f *Frame) dumpHeaders() {

@@ -112,9 +112,17 @@ func getHeadersState(p *parser) stateFn {
 		lastFrame, err := p.getLastFrame()
 
 		if err == nil {
-			lastFrame.addHeader(token.String())
+			err := lastFrame.addHeader(token.String())
+
+			if err != nil {
+				p.err = err
+				log.Error(p.err.Error())
+				return badExit
+			}
+
 		} else {
-			log.Error("Could not find last Frame.")
+			p.err = errors.New("Could not find last Frame.")
+			log.Error(p.err.Error())
 			return badExit
 		}
 
