@@ -3,9 +3,7 @@ package parser
 import (
 	"bytes"
 	"errors"
-	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
-	"os"
 	"time"
 )
 
@@ -16,26 +14,10 @@ type parser struct {
 	pos       int
 	state     stateFn
 	tokens    *[]Token
-	frames    *[]Frame
+	frame     Frame
 	startTime time.Time
 	err       error
 	data      []byte
-}
-
-type stateFn func(*parser) stateFn
-
-func (p *parser) getLastFrame() (*Frame, error) {
-	numberOfFrames := len(*p.frames)
-
-	log.Debug("Number of frames: %d", numberOfFrames)
-
-	if numberOfFrames < 1 {
-		return &Frame{}, errors.New("There is no last frame.")
-	} else {
-		log.Debug("Fetching frame...")
-		lFrames := *p.frames
-		return &lFrames[numberOfFrames-1], nil
-	}
 }
 
 func (p *parser) next() Token {
@@ -68,10 +50,12 @@ func (p *parser) run() {
 	}
 }
 
+type stateFn func(*parser) stateFn
+
 func startState(p *parser) stateFn {
 	log.Debug("Start parsing bufffer, recording time.")
 	p.startTime = time.Now()
-	p.frames = &[]Frame{} // initialize empty array of frames ( frames will be appended here in getCommandState )
+	p.frame = Frame{} 
 	return getCommandState
 }
 
@@ -84,7 +68,9 @@ func getCommandState(p *parser) stateFn {
 		return badExit
 	}
 
-	*p.frames = append(*p.frames, Frame{command: token.value.(Cmd)})
+	//*p.frames = append(*p.frames, Frame{command: token.value.(Cmd)})
+
+	p.frame.command = token.value.(Cmd)
 
 	// swallow EOL token to move on to the headers ...
 	token = p.next()
@@ -109,10 +95,8 @@ func getHeadersState(p *parser) stateFn {
 
 	for token.name == HEADER {
 		log.Debug("Header found: %s", token)
-		lastFrame, err := p.getLastFrame()
 
-		if err == nil {
-			err := lastFrame.AddHeader(token.String())
+			err := p.frame.AddHeader(token.String())
 
 			if err != nil {
 				p.err = err
@@ -120,11 +104,7 @@ func getHeadersState(p *parser) stateFn {
 				return badExit
 			}
 
-		} else {
-			p.err = errors.New("Could not find last Frame.")
-			log.Error(p.err.Error())
-			return badExit
-		}
+
 
 		token = p.next()
 		if token.name == EOL {
@@ -153,14 +133,7 @@ func saveDataState(p *parser) stateFn {
 
 		log.Debug("NUL byte position: %d", nullIdx)
 
-		lastFrame, err := p.getLastFrame()
-
-		if err == nil {
-			lastFrame.payload.Write(p.data[pos : pos+nullIdx])
-		} else {
-			log.Error("Could not find last Frame.")
-			return badExit
-		}
+		p.frame.payload.Write(p.data[pos : pos+nullIdx])
 
 		return goodExit
 	} else {
@@ -186,41 +159,54 @@ func goodExit(p *parser) stateFn {
 func cleanupAndExitMachine(p *parser) stateFn {
 	log.Debug("cleanupAndExitMachine()")
 	log.Debug("Buffer parse-time: %v", time.Now().Sub(p.startTime))
-	log.Debug("Number of Frames decoded: %d", len(*p.frames))
 
-	lastFrame, _ := p.getLastFrame()
+	log.Debug("Number of headers found: %d", len(p.frame.headers))
+	log.Debug("Number of payload: %d", p.frame.payload.Len())
 
-	log.Debug("Number of headers of last Frame: %d", len(lastFrame.headers))
-	log.Debug("Number of payload: %d", lastFrame.payload.Len())
-
-	lastFrame.dumpHeaders()
-
-	if globals.Config.Testmode {
-		log.Info("Running in testmode, exit.")
-		if p.err == nil {
-			os.Exit(0)
-		} else {
-			os.Exit(1)
-		}
-	}
+	p.frame.dumpHeaders()
 
 	return nil
 }
+/*
+Parses the input data given in the slice into a slice of Frames.
+*/
+func ParseFrames(data []byte) (bytesRead int, frames []Frame, err error) {
 
-func ParseFrames(data []byte) []Frame {
+	frames = []Frame{}
 
+	for {
+		number, frame, lastError := RunParser(data)
+		
+		if number == 0 {
+			break
+		}
+
+			frames = append(frames, frame)
+
+		_ = frame
+		_ = lastError
+
+		
+	}
+
+	log.Debug("Number of Frames received: %d", len(frames))
+
+	return 0, nil, nil
+}
+
+func RunParser(data []byte) (bytesRead int, frame Frame, err error) {
 	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
 		log.Error("Received no tokens, something is broken")
-	}
+		}
 
-	parser := parser{pos: 0, state: startState, tokens: &tokens, data: data}
+	parser := parser{pos: 0, tokens: &tokens, data: data}
 
 	parser.run()
 
-	return nil
-}
+	return 0, parser.frame, parser.err
+} 
 
 func dumpTokens(tokens []Token) {
 	log.Debug("***********************************************")
