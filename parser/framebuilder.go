@@ -170,23 +170,27 @@ func cleanupAndExitMachine(p *parser) stateFn {
 /*
 Parses the input data given in the slice into a slice of Frames.
 */
-func ParseFrames(data []byte) (bytesRead int, frames []Frame, err error) {
+func ParseFrames(data []byte) (int, []Frame, error) {
 
-	frames = []Frame{}
+	frames := []Frame{}
 
 	for {
 		number, frame, lastError := RunParser(data)
-		
-		if number == 0 {
-			break
-		}
 
-			frames = append(frames, frame)
+		log.Debug("Bytes read: %d", number)
+		
+		if lastError != nil {
+			log.Debug("Last parsing returned an error: %s", lastError.Error())
+		} 
+
+		// http://stackoverflow.com/questions/20240179/nil-detection-in-golang
+		frames = append(frames, frame)		
 
 		_ = frame
 		_ = lastError
 
-		
+
+		break
 	}
 
 	log.Debug("Number of Frames received: %d", len(frames))
@@ -194,12 +198,14 @@ func ParseFrames(data []byte) (bytesRead int, frames []Frame, err error) {
 	return 0, nil, nil
 }
 
-func RunParser(data []byte) (bytesRead int, frame Frame, err error) {
+func RunParser(data []byte) (int, Frame, error) {
 	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
-		log.Error("Received no tokens, something is broken")
-		}
+		msg := "Received no tokens, something is broken"
+		log.Error(msg)
+		return 0, Frame{}, errors.New(msg)
+	}
 
 	parser := parser{pos: 0, tokens: &tokens, data: data}
 
