@@ -10,7 +10,7 @@ import (
 // see: go/src/pkg/text/template/parse/lex.go
 // or: http://rspace.googlecode.com/hg/slide/lex.html#landing-slide
 
-type parser struct {
+type Parser struct {
 	pos       int
 	state     stateFn
 	tokens    *[]Token
@@ -20,7 +20,7 @@ type parser struct {
 	data      []byte
 }
 
-func (p *parser) next() Token {
+func (p *Parser) next() Token {
 
 	if p.pos >= len(*p.tokens) {
 		log.Debug("EOF reached")
@@ -33,7 +33,26 @@ func (p *parser) next() Token {
 	return tok
 }
 
-func (p *parser) nextPos() (int, error) {
+func (p *Parser) dumpTokens() {
+	log.Debug("***********************************************")
+	log.Debug("TOKENDUMP:")
+
+	for number, token := range *p.tokens {
+
+		var prefix string = ""
+
+		switch token.name {
+		case HEADER:
+			prefix = "HEADER :"
+		}
+
+		log.Debug("%02d:%04d:%s%s\n", number, token.nextPos, prefix, token)
+	}
+
+	log.Debug("***********************************************")
+}
+
+func (p *Parser) nextPos() (int, error) {
 	if p.pos > 0 {
 		localTokens := *p.tokens
 		tok := localTokens[(p.pos - 1)]
@@ -44,22 +63,22 @@ func (p *parser) nextPos() (int, error) {
 
 }
 
-func (p *parser) run() {
+func (p *Parser) runMachine() {
 	for state := startState; state != nil; {
 		state = state(p)
 	}
 }
 
-type stateFn func(*parser) stateFn
+type stateFn func(*Parser) stateFn
 
-func startState(p *parser) stateFn {
+func startState(p *Parser) stateFn {
 	log.Debug("Start parsing bufffer, recording time.")
 	p.startTime = time.Now()
-	p.frame = Frame{} 
+	p.frame = Frame{}
 	return getCommandState
 }
 
-func getCommandState(p *parser) stateFn {
+func getCommandState(p *Parser) stateFn {
 	log.Debug("In getCommandState")
 	token := p.next()
 
@@ -68,12 +87,9 @@ func getCommandState(p *parser) stateFn {
 		return badExit
 	}
 
-	//*p.frames = append(*p.frames, Frame{command: token.value.(Cmd)})
-
 	p.frame.command = token.value.(Cmd)
 
-	// swallow EOL token to move on to the headers ...
-	token = p.next()
+	token = p.next() // swallow EOL token to move on to the headers ...
 
 	if token.name != EOL {
 		p.err = errors.New("No EOL afer STOMP command found.")
@@ -83,7 +99,7 @@ func getCommandState(p *parser) stateFn {
 	return getHeadersState
 }
 
-func getHeadersState(p *parser) stateFn {
+func getHeadersState(p *Parser) stateFn {
 	log.Debug("In getHeadersState")
 
 	token := p.next()
@@ -96,15 +112,13 @@ func getHeadersState(p *parser) stateFn {
 	for token.name == HEADER {
 		log.Debug("Header found: %s", token)
 
-			err := p.frame.AddHeader(token.String())
+		err := p.frame.AddHeader(token.String())
 
-			if err != nil {
-				p.err = err
-				log.Error(p.err.Error())
-				return badExit
-			}
-
-
+		if err != nil {
+			p.err = err
+			log.Error(p.err.Error())
+			return badExit
+		}
 
 		token = p.next()
 		if token.name == EOL {
@@ -116,7 +130,7 @@ func getHeadersState(p *parser) stateFn {
 	return badExit
 }
 
-func saveDataState(p *parser) stateFn {
+func saveDataState(p *Parser) stateFn {
 	log.Debug("saveDataState()")
 
 	pos, err := p.nextPos()
@@ -143,20 +157,20 @@ func saveDataState(p *parser) stateFn {
 
 }
 
-func badExit(p *parser) stateFn {
+func badExit(p *Parser) stateFn {
 	log.Error("badExit()")
 	log.Error("Parsing error, last problem: %s", p.err)
-	dumpTokens(*p.tokens)
+	p.dumpTokens()
 	return cleanupAndExitMachine
 }
 
-func goodExit(p *parser) stateFn {
+func goodExit(p *Parser) stateFn {
 	log.Debug("goodExit()")
-	dumpTokens(*p.tokens)
+	p.dumpTokens()
 	return cleanupAndExitMachine
 }
 
-func cleanupAndExitMachine(p *parser) stateFn {
+func cleanupAndExitMachine(p *Parser) stateFn {
 	log.Debug("cleanupAndExitMachine()")
 	log.Debug("Buffer parse-time: %v", time.Now().Sub(p.startTime))
 
@@ -167,6 +181,7 @@ func cleanupAndExitMachine(p *parser) stateFn {
 
 	return nil
 }
+
 /*
 Parses the input data given in the slice into a slice of Frames.
 */
@@ -178,17 +193,15 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 		number, frame, lastError := RunParser(data)
 
 		log.Debug("Bytes read: %d", number)
-		
+
 		if lastError != nil {
 			log.Debug("Last parsing returned an error: %s", lastError.Error())
-		} 
+		}
 
-		// http://stackoverflow.com/questions/20240179/nil-detection-in-golang
-		frames = append(frames, frame)		
+		frames = append(frames, frame)
 
 		_ = frame
 		_ = lastError
-
 
 		break
 	}
@@ -207,26 +220,13 @@ func RunParser(data []byte) (int, Frame, error) {
 		return 0, Frame{}, errors.New(msg)
 	}
 
-	parser := parser{pos: 0, tokens: &tokens, data: data}
-
-	parser.run()
+	parser := CreateAndStartParser(data, tokens)
 
 	return 0, parser.frame, parser.err
-} 
+}
 
-func dumpTokens(tokens []Token) {
-	log.Debug("***********************************************")
-	for number, token := range tokens {
-
-		var prefix string = ""
-
-		switch token.name {
-		case HEADER:
-			prefix = "HEADER :"
-		}
-
-		log.Debug("%02d:%04d:%s%s\n", number, token.nextPos, prefix, token)
-	}
-
-	log.Debug("***********************************************")
+func CreateAndStartParser(data []byte, tokens []Token) Parser {
+	parser := Parser{pos: 0, tokens: &tokens, data: data}
+	parser.runMachine()
+	return parser
 }
