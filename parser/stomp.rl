@@ -42,11 +42,13 @@ func stomp_lexer(data []byte, tokenArray *[]Token) {
 			};
 		
 		EOL =>    { 
-			numberOfEOLs += 1
-			emitToken(Token{name: EOL, value: nil, nextPos: te}, tokenArray) 
 			if numberOfEOLs == 2 { // the second EOL marks the end of the header section. Data ought not to be slurped by the scanner.
 				return
 			}
+
+			numberOfEOLs += 1
+			emitToken(Token{name: EOL, value: nil, nextPos: te}, tokenArray) 
+
 		};
 
 		HEADER => { emitToken(Token{name: HEADER, value: string(data[ts:te]), nextPos: te}, tokenArray) };

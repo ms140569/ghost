@@ -37,7 +37,7 @@ func (p *Parser) next() Token {
 
 func (p *Parser) dumpTokens() {
 	log.Debug("***********************************************")
-	log.Debug("TOKENDUMP:")
+	log.Debug("TOKENDUMP: Number of Tokens received: %d", len(*p.tokens))
 
 	for number, token := range *p.tokens {
 
@@ -147,10 +147,10 @@ func saveDataState(p *Parser) stateFn {
 			return badExit
 		}
 
-		log.Debug("NUL byte position: %d", nullIdx)
+		log.Debug("Payload size: %d", nullIdx)
 
 		p.frame.payload.Write(p.data[pos : pos+nullIdx])
-		p.nullIdx = nullIdx
+		p.nullIdx = pos + nullIdx
 
 		return swallowTrailingNewline
 	} else {
@@ -163,7 +163,12 @@ func saveDataState(p *Parser) stateFn {
 func swallowTrailingNewline(p *Parser) stateFn {
 	log.Debug("swallowTrailingNewline()")
 
-	var pos int = p.nullIdx
+	var pos int = p.nullIdx + 1 // ignore null byte itself.
+
+	if pos == len(p.data) {
+		p.bytesConsumed = pos - 1
+		return goodExit
+	}
 
 	for {
 		b := p.data[pos]
@@ -176,6 +181,11 @@ func swallowTrailingNewline(p *Parser) stateFn {
 		} else {
 			break
 		}
+
+		if pos == len(p.data) {
+			break
+		}
+
 	}
 
 	p.bytesConsumed = pos - 1
@@ -229,15 +239,14 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 		frames = append(frames, frame)
 		bytesRead = bytesRead + number
 
-		if len(data) <= 0 {
+		log.Debug("Number of Frames received: %d", len(frames))
+
+		if len(data) <= 0 || len(data) <= bytesRead {
 			break
 		}
 
 		data = data[bytesRead+1:]
-
 	}
-
-	log.Debug("Number of Frames received: %d", len(frames))
 
 	return bytesRead, frames, lastError
 }
