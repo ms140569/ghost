@@ -11,25 +11,27 @@ import (
 // or: http://rspace.googlecode.com/hg/slide/lex.html#landing-slide
 
 type Parser struct {
-	pos       int
-	state     stateFn
-	tokens    *[]Token
-	frame     Frame
-	startTime time.Time
-	err       error
-	data      []byte
+	tokenIndex    int
+	state         stateFn
+	tokens        *[]Token
+	frame         Frame
+	startTime     time.Time
+	err           error
+	data          []byte
+	bytesConsumed int
+	nullIdx       int
 }
 
 func (p *Parser) next() Token {
 
-	if p.pos >= len(*p.tokens) {
+	if p.tokenIndex >= len(*p.tokens) {
 		log.Debug("EOF reached")
 		return Token{name: EOF}
 	}
 
 	localTokens := *p.tokens
-	tok := localTokens[p.pos]
-	p.pos = p.pos + 1
+	tok := localTokens[p.tokenIndex]
+	p.tokenIndex = p.tokenIndex + 1
 	return tok
 }
 
@@ -53,9 +55,9 @@ func (p *Parser) dumpTokens() {
 }
 
 func (p *Parser) nextPos() (int, error) {
-	if p.pos > 0 {
+	if p.tokenIndex > 0 {
 		localTokens := *p.tokens
-		tok := localTokens[(p.pos - 1)]
+		tok := localTokens[(p.tokenIndex - 1)]
 		return tok.nextPos, nil
 	} else {
 		return 0, errors.New("Could not get next position.")
@@ -148,8 +150,9 @@ func saveDataState(p *Parser) stateFn {
 		log.Debug("NUL byte position: %d", nullIdx)
 
 		p.frame.payload.Write(p.data[pos : pos+nullIdx])
+		p.nullIdx = nullIdx
 
-		return goodExit
+		return swallowTrailingNewline
 	} else {
 		p.err = err
 		return badExit
@@ -157,16 +160,37 @@ func saveDataState(p *Parser) stateFn {
 
 }
 
+func swallowTrailingNewline(p *Parser) stateFn {
+	log.Debug("swallowTrailingNewline()")
+
+	var pos int = p.nullIdx
+
+	for {
+		b := p.data[pos]
+
+		log.Debug("BYTE to swallow:%x on position: %d", b, pos)
+
+		if b == 0x0a {
+			log.Debug("Swallow a newline char.")
+			pos = pos + 1
+		} else {
+			break
+		}
+	}
+
+	p.bytesConsumed = pos - 1
+
+	return goodExit
+}
+
 func badExit(p *Parser) stateFn {
 	log.Error("badExit()")
 	log.Error("Parsing error, last problem: %s", p.err)
-	p.dumpTokens()
 	return cleanupAndExitMachine
 }
 
 func goodExit(p *Parser) stateFn {
 	log.Debug("goodExit()")
-	p.dumpTokens()
 	return cleanupAndExitMachine
 }
 
@@ -189,26 +213,33 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 
 	frames := []Frame{}
 
+	var lastError error = nil
+	var bytesRead int = 0
+
 	for {
 		number, frame, lastError := RunParser(data)
 
-		log.Debug("Bytes read: %d", number)
+		log.Debug("Bytes read in this parsing run: %d", number)
 
 		if lastError != nil {
 			log.Debug("Last parsing returned an error: %s", lastError.Error())
+			break
 		}
 
 		frames = append(frames, frame)
+		bytesRead = bytesRead + number
 
-		_ = frame
-		_ = lastError
+		if len(data) <= 0 {
+			break
+		}
 
-		break
+		data = data[bytesRead+1:]
+
 	}
 
 	log.Debug("Number of Frames received: %d", len(frames))
 
-	return 0, nil, nil
+	return bytesRead, frames, lastError
 }
 
 func RunParser(data []byte) (int, Frame, error) {
@@ -222,11 +253,13 @@ func RunParser(data []byte) (int, Frame, error) {
 
 	parser := CreateAndStartParser(data, tokens)
 
-	return 0, parser.frame, parser.err
+	parser.dumpTokens()
+
+	return parser.bytesConsumed, parser.frame, parser.err
 }
 
 func CreateAndStartParser(data []byte, tokens []Token) Parser {
-	parser := Parser{pos: 0, tokens: &tokens, data: data}
+	parser := Parser{tokenIndex: 0, tokens: &tokens, data: data}
 	parser.runMachine()
 	return parser
 }

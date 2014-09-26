@@ -27,8 +27,6 @@ func (f *Frame) AddHeader(header string) error {
 	header = strings.TrimSuffix(header, "\r\n")
 	header = strings.TrimSuffix(header, "\n")
 
-	log.Debug("Adding header: |%s|", header)
-
 	if f.headers == nil {
 		log.Debug("Adding new header map")
 		f.headers = make(map[string]string)
@@ -41,8 +39,6 @@ func (f *Frame) AddHeader(header string) error {
 	}
 
 	if strings.HasSuffix(header, Separator) {
-		log.Debug("Adding header without value")
-
 		key := strings.TrimSuffix(header, Separator)
 
 		if len(key) > globals.MaxHaederKeyLength {
@@ -54,8 +50,6 @@ func (f *Frame) AddHeader(header string) error {
 		arr := strings.Split(header, Separator)
 		key := arr[0]
 		val := arr[1]
-
-		log.Debug("Adding header with value")
 
 		if len(key) > globals.MaxHaederKeyLength {
 			return errors.New("Header key too long.")
