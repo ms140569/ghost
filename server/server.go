@@ -27,6 +27,8 @@ func Server() {
 		os.Exit(0)
 	}
 
+	InitFrameQueue()
+
 	log.Info(globals.Config.ServerGreeting + "\n")
 
 	listener, err := net.Listen("tcp", ":"+globals.Config.GhostPortAsString)
@@ -65,18 +67,21 @@ func handleConnection(greeting string, conn net.Conn) {
 		log.Debug("Read returned that much bytes:%d", n)
 		buffer = buffer[0:n]
 
-		frame := parser.NewFrame(parser.CONNECTED)
-		frame.AddHeader("not-used:value")
-
-		n, err = conn.Write([]byte(frame.Render()))
-
-		if err != nil {
-			conn.Close()
-			break
-		}
-
 		if len(buffer) > 0 {
-			parser.ParseFrames(buffer)
+			bytesConsumed, frames, err := parser.ParseFrames(buffer)
+
+			if err != nil { // log and/or process error but pass on valid frames
+				log.Error(err.Error())
+			}
+
+			for _, frame := range frames {
+				QueueFrame(conn, frame)
+			}
+
+			if bytesConsumed < len(buffer) { // reload new data and parse again
+				log.Info("Parser did not consume all bytes, retry ...")
+				// ....
+			}
 		}
 
 	}

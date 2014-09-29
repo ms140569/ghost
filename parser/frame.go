@@ -6,15 +6,17 @@ import (
 	"fmt"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
+	"net"
 	"strings"
 )
 
 const Separator string = ":"
 
 type Frame struct {
-	command Cmd
-	headers map[string]string
-	payload bytes.Buffer
+	command    Cmd
+	headers    map[string]string
+	payload    bytes.Buffer
+	Connection net.Conn
 }
 
 func NewFrame(cmd Cmd) Frame {
