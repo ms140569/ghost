@@ -79,8 +79,8 @@ func handleConnection(greeting string, conn net.Conn) {
 			}
 
 			if bytesConsumed < len(buffer) { // reload new data and parse again
-				log.Info("Parser did not consume all bytes, retry ...")
-				// ....
+				log.Info("Parser did not consume all bytes.")
+				log.Info("Received: %d, consumed by parsing: %d", len(buffer), bytesConsumed)
 			}
 		}
 

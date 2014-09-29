@@ -11,7 +11,7 @@ var conn net.Conn
 
 func InitFrameQueue() {
 
-	frameQueue = make(chan parser.Frame)
+	frameQueue = make(chan parser.Frame, 50)
 
 	go ProcessFrame()
 }
@@ -24,16 +24,17 @@ func QueueFrame(conn net.Conn, frame parser.Frame) {
 }
 
 func ProcessFrame() {
-	frame := <-frameQueue
-	log.Info("Processing single frame.")
+	for {
+		frame := <-frameQueue
+		log.Info("Processing single frame.")
 
-	answer := parser.NewFrame(parser.CONNECTED)
-	answer.AddHeader("not-used:value")
+		answer := parser.NewFrame(parser.CONNECTED)
+		answer.AddHeader("not-used:value")
 
-	_, err := frame.Connection.Write([]byte(answer.Render()))
+		_, err := frame.Connection.Write([]byte(answer.Render()))
 
-	if err != nil {
-		frame.Connection.Close()
+		if err != nil {
+			frame.Connection.Close()
+		}
 	}
-
 }
