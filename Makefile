@@ -22,11 +22,15 @@ $(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)
 
 .PHONY: clean
 clean:
-	$(RM) -rf $(TARGET_DIR)/$(BIN_NAME) $(TMP_FILES)
+	@$(RM) -rf $(TARGET_DIR)/$(BIN_NAME) $(TMP_FILES)
 
 .PHONY: fmt
 fmt:
 	go fmt
+
+.PHONY: stat
+stat: clean
+	@find . -type f -name \*.go |xargs wc -l
 
 $(SCANNER_FILE): $(PARSER_DIR)/stomp.rl
 	ragel -Z -T0 -o $(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
