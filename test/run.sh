@@ -2,6 +2,10 @@
 
 declare -A protocolTests
 
+RED='\e[0;31m'
+GREEN='\e[1;32m'
+OFF='\e[0m'
+
 protocolTests=( 
     ["connect-and-send"]=0
 	["connect-and-send-with-receipt"]=0
@@ -37,9 +41,9 @@ do
 	if [ $? -eq ${protocolTests["$individualTest"]} ]
 	then
         
-		echo OK
+		echo -e "${GREEN}SUCCESS${OFF}"
 	else
-		echo FAIL
+		echo -e "${RED}FAIL${OFF}"
 	fi
 	
 done
