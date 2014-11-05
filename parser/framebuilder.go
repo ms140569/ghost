@@ -3,7 +3,9 @@ package parser
 import (
 	"bytes"
 	"errors"
+	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
+	"os"
 	"time"
 )
 
@@ -166,7 +168,7 @@ func swallowTrailingNewline(p *Parser) stateFn {
 	var pos int = p.nullIdx + 1 // ignore null byte itself.
 
 	if pos == len(p.data) {
-		p.bytesConsumed = pos - 1
+		p.bytesConsumed = pos
 		return goodExit
 	}
 
@@ -256,6 +258,12 @@ func RunParser(data []byte) (int, Frame, error) {
 
 	if len(tokens) < 1 {
 		msg := "Received no tokens, something is broken"
+
+		if globals.Config.Testmode {
+			log.Fatal("%s", msg)
+			os.Exit(1)
+		}
+
 		log.Error(msg)
 		return 0, Frame{}, errors.New(msg)
 	}
