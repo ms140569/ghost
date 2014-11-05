@@ -190,7 +190,7 @@ func swallowTrailingNewline(p *Parser) stateFn {
 
 	}
 
-	p.bytesConsumed = pos - 1
+	p.bytesConsumed = pos
 
 	return goodExit
 }
