@@ -1,0 +1,5 @@
+This python base stomp protocol client uses stompest from:
+
+https://github.com/nikipore/stompest
+
+you gotta have this installed to run the client
