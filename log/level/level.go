@@ -1,17 +1,31 @@
 package level
 
+import "strings"
+
 type Level int
 
 const (
-	Off Level = iota
+	All Level = iota
 	Trace
 	Debug
 	Info
 	Warn
 	Error
 	Fatal
-	All
+	Off
 )
+
+var levels = []Level{All, Trace, Debug, Info, Warn, Error, Fatal, Off}
+
+func ToLoglevel(s string) Level {
+	for _, level := range levels {
+		if strings.ToUpper(s) == level.String() {
+			return level
+		}
+	}
+
+	return All // FIXME: this ought not happen, have to come up with some error
+}
 
 func (l Level) String() string {
 	switch l {

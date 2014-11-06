@@ -39,8 +39,10 @@ backup: clean
 	(cd .. ; tar czvf $(BACKUP_FILE) $(BASENAME) ; cd -)
 
 .PHONY: test
-test:
+test: all
 	(cd test;./run.sh)
+	(cd test/generator;./runall.sh)
+	go test github.com/ms140569/ghost/log/level
 
 run: $(TARGET_DIR)/$(BIN_NAME)
 	$(TARGET_DIR)/$(BIN_NAME)		

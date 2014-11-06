@@ -234,6 +234,12 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 		log.Debug("Bytes read in this parsing run: %d", number)
 
 		if lastError != nil {
+
+			if globals.Config.Testmode {
+				log.Fatal("Last parsing returned an error: %s", lastError.Error())
+				os.Exit(1)
+			}
+
 			log.Debug("Last parsing returned an error: %s", lastError.Error())
 			break
 		}
