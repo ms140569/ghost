@@ -54,9 +54,9 @@ func Server() {
 func handleConnection(greeting string, conn net.Conn) {
 	log.Debug("Connection Handler invoked")
 
-	buffer := make([]byte, globals.DefaultBufferSize)
-
 	for {
+		buffer := make([]byte, globals.DefaultBufferSize)
+
 		n, err := conn.Read(buffer)
 
 		if err != nil || n == 0 {

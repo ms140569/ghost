@@ -134,6 +134,13 @@ func getHeadersState(p *Parser) stateFn {
 	return badExit
 }
 
+/*
+   From the STOMP 1.2 spec:
+
+   Only the SEND, MESSAGE, and ERROR frames MAY have a body. All other frames MUST NOT have a body.
+
+*/
+
 func saveDataState(p *Parser) stateFn {
 	log.Debug("saveDataState()")
 
