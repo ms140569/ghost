@@ -56,14 +56,14 @@ func handleConnection(greeting string, conn net.Conn) {
 
 	buffer := make([]byte, globals.DefaultBufferSize)
 
-	conn.Write([]byte(greeting + "\n"))
-
 	for {
 		n, err := conn.Read(buffer)
+
 		if err != nil || n == 0 {
 			conn.Close()
 			break
 		}
+
 		log.Debug("Network read returned that much bytes:%d", n)
 		buffer = buffer[0:n]
 

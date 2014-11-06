@@ -6,8 +6,13 @@ import (
 	"net"
 )
 
+type LogicalConnection struct {
+	isConnected bool
+}
+
+var connections map[net.Conn]LogicalConnection = make(map[net.Conn]LogicalConnection)
+
 var frameQueue chan parser.Frame
-var conn net.Conn
 
 func InitFrameQueue() {
 
@@ -28,8 +33,24 @@ func ProcessFrame() {
 		frame := <-frameQueue
 		log.Info("Processing single frame: %s", frame.Command.String())
 
-		answer := parser.NewFrame(parser.CONNECTED)
-		answer.AddHeader("not-used:value")
+		_, present := connections[frame.Connection]
+
+		var answer parser.Frame
+
+		if present {
+			log.Debug("Connection know to server")
+			answer = parser.NewFrame(parser.ACK)
+			answer.AddHeader("not-used:value")
+			answer.AddHeader("schmidtm:welcome back friend")
+
+		} else {
+			log.Debug("New connection, adding to map.")
+			connections[frame.Connection] = LogicalConnection{isConnected: true}
+
+			answer = parser.NewFrame(parser.CONNECTED)
+			answer.AddHeader("not-used:value")
+
+		}
 
 		_, err := frame.Connection.Write([]byte(answer.Render()))
 
