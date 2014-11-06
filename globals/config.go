@@ -2,7 +2,7 @@ package globals
 
 import (
 	"fmt"
-	// "github.com/ms140569/ghost/log/level"
+	"github.com/ms140569/ghost/log"
 	"strconv"
 )
 
@@ -15,10 +15,9 @@ type Configuration struct {
 	Testmode          bool
 	GhostPortAsString string
 	ServerGreeting    string
-	// SystemLogLevel    level.Level
 }
 
-func NewConfig(port int, filename string, testmode bool) {
+func NewConfig(port int, filename string, testmode bool, loglevel string) {
 
 	Config = Configuration{port, filename, testmode, "", ""}
 
@@ -28,6 +27,7 @@ func NewConfig(port int, filename string, testmode bool) {
 
 	Config.GhostPortAsString = strconv.Itoa(port)
 	Config.ServerGreeting = produceServerGreeting(Config.GhostPortAsString)
+	log.SetSystemLogLevelFromString(loglevel)
 }
 
 func produceServerGreeting(GhostPortAsString string) string {

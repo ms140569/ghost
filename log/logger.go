@@ -5,7 +5,15 @@ import (
 	"log"
 )
 
-var SystemLogLevel level.Level = level.Debug
+var SystemLogLevel level.Level
+
+func SetSystemLogLevel(l level.Level) {
+	SystemLogLevel = l
+}
+
+func SetSystemLogLevelFromString(s string) {
+	SystemLogLevel = level.ToLoglevel(s)
+}
 
 func LeveledLogger(level level.Level, format string, v ...interface{}) {
 	if level >= SystemLogLevel {
