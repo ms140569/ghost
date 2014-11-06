@@ -168,6 +168,7 @@ func swallowTrailingNewline(p *Parser) stateFn {
 	var pos int = p.nullIdx + 1 // ignore null byte itself.
 
 	if pos == len(p.data) {
+		log.Debug("End-of-data after NULL reached.")
 		p.bytesConsumed = pos
 		return goodExit
 	}
@@ -175,7 +176,7 @@ func swallowTrailingNewline(p *Parser) stateFn {
 	for {
 		b := p.data[pos]
 
-		log.Debug("BYTE to swallow:%x on position: %d", b, pos)
+		log.Debug("BYTE to swallow:%02X on position: %d", b, pos)
 
 		if b == 0x0a {
 			log.Debug("Swallow a newline char.")
@@ -253,12 +254,15 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 			break
 		}
 
-		data = data[bytesRead+1:]
+		data = data[bytesRead:]
 	}
 
 	return bytesRead, frames, lastError
 }
 
+/*
+   This parses a chunk of bytes into one SINGLE Frame
+*/
 func RunParser(data []byte) (int, Frame, error) {
 	tokens := Scanner(data)
 
