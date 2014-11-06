@@ -64,7 +64,7 @@ func handleConnection(greeting string, conn net.Conn) {
 			conn.Close()
 			break
 		}
-		log.Debug("Read returned that much bytes:%d", n)
+		log.Debug("Network read returned that much bytes:%d", n)
 		buffer = buffer[0:n]
 
 		if len(buffer) > 0 {

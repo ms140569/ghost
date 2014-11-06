@@ -17,7 +17,7 @@ func InitFrameQueue() {
 }
 
 func QueueFrame(conn net.Conn, frame parser.Frame) {
-	log.Info("Queing frame.")
+	log.Info("Queing frame: %s", frame.Command)
 
 	frame.Connection = conn
 	frameQueue <- frame
@@ -26,7 +26,7 @@ func QueueFrame(conn net.Conn, frame parser.Frame) {
 func ProcessFrame() {
 	for {
 		frame := <-frameQueue
-		log.Info("Processing single frame.")
+		log.Info("Processing single frame: %s", frame.Command.String())
 
 		answer := parser.NewFrame(parser.CONNECTED)
 		answer.AddHeader("not-used:value")

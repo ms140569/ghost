@@ -13,14 +13,14 @@ import (
 const Separator string = ":"
 
 type Frame struct {
-	command    Cmd
+	Command    Cmd
 	headers    map[string]string
 	payload    bytes.Buffer
 	Connection net.Conn
 }
 
 func NewFrame(cmd Cmd) Frame {
-	frame := Frame{command: cmd}
+	frame := Frame{Command: cmd}
 	frame.headers = make(map[string]string)
 	return frame
 }
@@ -74,8 +74,8 @@ func (f *Frame) dumpHeaders() {
 }
 
 func (f *Frame) Render() string {
-	// command
-	retVal := fmt.Sprintf(f.command.String()) + "\n"
+	// Command
+	retVal := fmt.Sprintf(f.Command.String()) + "\n"
 	// headers
 
 	for k, v := range f.headers {

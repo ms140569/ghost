@@ -91,7 +91,7 @@ func getCommandState(p *Parser) stateFn {
 		return badExit
 	}
 
-	p.frame.command = token.value.(Cmd)
+	p.frame.Command = token.value.(Cmd)
 
 	token = p.next() // swallow EOL token to move on to the headers ...
 
@@ -228,6 +228,7 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 
 	var lastError error = nil
 	var bytesRead int = 0
+	var inputDataSize int = len(data)
 
 	for {
 		number, frame, lastError := RunParser(data)
@@ -249,12 +250,14 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 		bytesRead = bytesRead + number
 
 		log.Debug("Number of Frames received: %d", len(frames))
+		log.Debug("DATA sizing, len(data): %d , bytesRead: %d", len(data), bytesRead)
 
-		if len(data) <= 0 || len(data) <= bytesRead {
+		if bytesRead >= inputDataSize {
+			log.Debug("BREAK: no data left.")
 			break
 		}
 
-		data = data[bytesRead:]
+		data = data[number:]
 	}
 
 	return bytesRead, frames, lastError
