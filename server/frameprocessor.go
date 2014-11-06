@@ -18,7 +18,7 @@ func InitFrameQueue() {
 
 	frameQueue = make(chan parser.Frame, 50)
 
-	go ProcessFrame()
+	go FetchFrame()
 }
 
 func QueueFrame(conn net.Conn, frame parser.Frame) {
@@ -28,29 +28,12 @@ func QueueFrame(conn net.Conn, frame parser.Frame) {
 	frameQueue <- frame
 }
 
-func ProcessFrame() {
+func FetchFrame() {
 	for {
 		frame := <-frameQueue
 		log.Info("Processing single frame: %s", frame.Command.String())
 
-		_, present := connections[frame.Connection]
-
-		var answer parser.Frame
-
-		if present {
-			log.Debug("Connection know to server")
-			answer = parser.NewFrame(parser.ACK)
-			answer.AddHeader("not-used:value")
-			answer.AddHeader("schmidtm:welcome back friend")
-
-		} else {
-			log.Debug("New connection, adding to map.")
-			connections[frame.Connection] = LogicalConnection{isConnected: true}
-
-			answer = parser.NewFrame(parser.CONNECTED)
-			answer.AddHeader("not-used:value")
-
-		}
+		answer := ProcessFrame(frame)
 
 		_, err := frame.Connection.Write([]byte(answer.Render()))
 
@@ -58,4 +41,45 @@ func ProcessFrame() {
 			frame.Connection.Close()
 		}
 	}
+}
+
+func ProcessFrame(input parser.Frame) parser.Frame {
+	switch input.Command {
+	case parser.CONNECT:
+		return processConnect(input)
+	default:
+		return processDefault(input)
+	}
+}
+
+func processConnect(frame parser.Frame) parser.Frame {
+	log.Debug("processConnect")
+
+	_, present := connections[frame.Connection]
+
+	var answer parser.Frame
+
+	if present {
+		log.Debug("Connection know to server")
+		answer = parser.NewFrame(parser.ERROR)
+		answer.AddHeader("message:already connected.")
+	} else {
+		log.Debug("New connection, adding to map.")
+		connections[frame.Connection] = LogicalConnection{isConnected: true}
+
+		answer = parser.NewFrame(parser.CONNECTED)
+		answer.AddHeader("not-used:value")
+	}
+
+	return answer
+}
+
+func processDefault(frame parser.Frame) parser.Frame {
+	log.Debug("processDefault")
+	answer := parser.NewFrame(parser.ACK)
+
+	answer.AddHeader("not-used:value")
+	answer.AddHeader("schmidtm:welcome back friend")
+
+	return answer
 }
