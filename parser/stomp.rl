@@ -27,7 +27,7 @@ func stomp_lexer(data []byte, tokenArray *[]Token) {
 	%%{
 		EOL = "\r"? . "\n";
 		COLON = ":";
-		STRING = /[a-zA-Z0-9_\+\-\.\/]/+;
+		STRING = /[a-zA-Z0-9_\+\-\.\/\,]/+;
 		HEADER = STRING . COLON . STRING? . EOL; 
 
 		client_commands = "SEND" | "SUBSCRIBE" | "UNSUBSCRIBE" | "BEGIN" | "COMMIT" | "ABORT" | "ACK" | "NACK" | "DISCONNECT" | "CONNECT" | "STOMP";

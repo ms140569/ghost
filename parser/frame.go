@@ -81,6 +81,10 @@ func (f *Frame) Render() string {
 	for k, v := range f.headers {
 		retVal = retVal + fmt.Sprintf("%s:%s\n", k, v)
 	}
+
+	// dont forget trailing newline to separate headers.
+	retVal = retVal + fmt.Sprintf("\n")
+
 	// data
 
 	if f.payload.Len() > 0 {

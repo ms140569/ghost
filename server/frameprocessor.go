@@ -7,7 +7,8 @@ import (
 )
 
 type LogicalConnection struct {
-	isConnected bool
+	isConnected  bool
+	isProtocol12 bool
 }
 
 var connections map[net.Conn]LogicalConnection = make(map[net.Conn]LogicalConnection)
@@ -68,7 +69,7 @@ func processConnect(frame parser.Frame) parser.Frame {
 		connections[frame.Connection] = LogicalConnection{isConnected: true}
 
 		answer = parser.NewFrame(parser.CONNECTED)
-		answer.AddHeader("not-used:value")
+		answer.AddHeader("version:1.2")
 	}
 
 	return answer
