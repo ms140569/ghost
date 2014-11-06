@@ -134,13 +134,6 @@ func getHeadersState(p *Parser) stateFn {
 	return badExit
 }
 
-/*
-   From the STOMP 1.2 spec:
-
-   Only the SEND, MESSAGE, and ERROR frames MAY have a body. All other frames MUST NOT have a body.
-
-*/
-
 func saveDataState(p *Parser) stateFn {
 	log.Debug("saveDataState()")
 
@@ -157,6 +150,21 @@ func saveDataState(p *Parser) stateFn {
 		}
 
 		log.Debug("Payload size: %d", nullIdx)
+
+		// From the STOMP 1.2 spec:
+		// Only the SEND, MESSAGE, and ERROR frames MAY have a body. All other frames MUST NOT have a body.
+		// Since the SEND Frame is the only client frame we enforce this here
+
+		if nullIdx > 0 && p.frame.Command != SEND {
+			msg := "Only SEND Frames might have a body."
+
+			if globals.Config.Testmode {
+				log.Fatal("%s", msg)
+				os.Exit(1)
+			}
+
+			log.Error(msg)
+		}
 
 		p.frame.payload.Write(p.data[pos : pos+nullIdx])
 		p.nullIdx = pos + nullIdx

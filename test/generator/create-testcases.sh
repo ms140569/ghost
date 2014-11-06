@@ -3,7 +3,7 @@
 RANGE='0 2'
 
 printCommand() {
-    echo CONNECT
+    echo SEND
 }
 
 printHeader() {
