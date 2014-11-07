@@ -7,6 +7,9 @@ printCommand() {
 }
 
 printHeader() {
+
+    echo destination:nirvana
+
     for i in `seq 1 $1` 
     do
         echo header$i:value$i

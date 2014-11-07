@@ -25,6 +25,11 @@ func NewFrame(cmd Cmd) Frame {
 	return frame
 }
 
+func (f *Frame) HasHeader(header string) bool {
+	_, present := f.headers[header]
+	return present
+}
+
 func (f *Frame) AddHeader(header string) error {
 	header = strings.TrimSuffix(header, "\r\n")
 	header = strings.TrimSuffix(header, "\n")

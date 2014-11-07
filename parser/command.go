@@ -40,6 +40,23 @@ var StompCommands = map[string]Cmd{
 	"COMMAND_NOT_RECOGNIZED": COMMAND_NOT_RECOGNIZED,
 }
 
+var requiredHeaders = map[Cmd][]string{
+	CONNECT:     {"accept-version", "host"},
+	STOMP:       {"accept-version", "host"},
+	SEND:        {"destination"},
+	SUBSCRIBE:   {"destination", "id"},
+	UNSUBSCRIBE: {"id"},
+	ACK:         {"id"},
+	NACK:        {"id"},
+	BEGIN:       {"transaction"},
+	COMMIT:      {"transaction"},
+	ABORT:       {"transaction"},
+}
+
+func (c Cmd) GetRequiredHeaders() []string {
+	return requiredHeaders[c]
+}
+
 func CommandForString(operation string) Cmd {
 	if cmd, ok := StompCommands[operation]; ok {
 		return cmd

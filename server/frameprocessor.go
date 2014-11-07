@@ -1,9 +1,11 @@
 package server
 
 import (
+	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
 	"net"
+	"os"
 )
 
 type LogicalConnection struct {
@@ -44,12 +46,31 @@ func FetchFrame() {
 	}
 }
 
-func ProcessFrame(input parser.Frame) parser.Frame {
-	switch input.Command {
+func ProcessFrame(frame parser.Frame) parser.Frame {
+
+	// check for required frame headers
+
+	for _, header := range frame.Command.GetRequiredHeaders() {
+		if !frame.HasHeader(header) {
+			msg := "Missing header: " + header
+
+			if globals.Config.Testmode {
+				log.Fatal("%s", msg)
+				os.Exit(1)
+			}
+
+			log.Error(msg)
+
+		}
+	}
+
+	// dispatch frame to handler function
+
+	switch frame.Command {
 	case parser.CONNECT:
-		return processConnect(input)
+		return processConnect(frame)
 	default:
-		return processDefault(input)
+		return processDefault(frame)
 	}
 }
 

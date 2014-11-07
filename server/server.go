@@ -23,7 +23,22 @@ func Server() {
 			os.Exit(1)
 		}
 
-		parser.ParseFrames(buffer)
+		bytesConsumed, frames, err := parser.ParseFrames(buffer)
+
+		log.Debug("Bytes consumed by parser: %d", bytesConsumed)
+
+		if err != nil { // log and/or process error but pass on valid frames
+			log.Error(err.Error())
+			os.Exit(1)
+		}
+
+		// in Testmode we don't run async by queue-in the frames but process them
+		// synchronously.
+
+		for _, frame := range frames {
+			ProcessFrame(frame)
+		}
+
 		os.Exit(0)
 	}
 
