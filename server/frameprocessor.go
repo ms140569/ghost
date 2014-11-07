@@ -43,6 +43,12 @@ func FetchFrame() {
 		if err != nil {
 			frame.Connection.Close()
 		}
+
+		// if the answer is an error frame, close the connection
+		if answer.Command == parser.ERROR {
+			frame.Connection.Close()
+		}
+
 	}
 }
 
@@ -61,16 +67,8 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 
 			log.Error(msg)
 
-			// produce error Frame, send it and close the connection
-
-			answer := createErrorFrameWithMessage(msg)
-
-			if frame.Connection == nil {
-				log.Error("No connection to wite the answer frame to.")
-			} else {
-				frame.Connection.Write([]byte(answer.Render()))
-				frame.Connection.Close()
-			}
+			// produce error Frame
+			return createErrorFrameWithMessage(msg)
 		}
 	}
 
