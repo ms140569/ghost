@@ -44,6 +44,7 @@ test: all
 	(cd test/generator;./runall.sh)
 	go test github.com/ms140569/ghost/log/level
 	go test github.com/ms140569/ghost/parser
+	go test github.com/ms140569/ghost/server
 
 run: $(TARGET_DIR)/$(BIN_NAME)
 	$(TARGET_DIR)/$(BIN_NAME)		

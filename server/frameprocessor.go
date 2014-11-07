@@ -63,13 +63,14 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 
 			// produce error Frame, send it and close the connection
 
-			answer := parser.NewFrame(parser.ERROR)
-			answer.AddHeader("message:" + msg)
+			answer := createErrorFrameWithMessage(msg)
 
-			frame.Connection.Write([]byte(answer.Render()))
-
-			frame.Connection.Close()
-
+			if frame.Connection == nil {
+				log.Error("No connection to wite the answer frame to.")
+			} else {
+				frame.Connection.Write([]byte(answer.Render()))
+				frame.Connection.Close()
+			}
 		}
 	}
 
@@ -78,9 +79,17 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 	switch frame.Command {
 	case parser.CONNECT:
 		return processConnect(frame)
+	case parser.SEND:
+		return processSend(frame)
 	default:
 		return processDefault(frame)
 	}
+}
+
+func createErrorFrameWithMessage(msg string) parser.Frame {
+	answer := parser.NewFrame(parser.ERROR)
+	answer.AddHeader("message:" + msg)
+	return answer
 }
 
 func processConnect(frame parser.Frame) parser.Frame {
@@ -92,8 +101,7 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 	if present {
 		log.Debug("Connection know to server")
-		answer = parser.NewFrame(parser.ERROR)
-		answer.AddHeader("message:already connected.")
+		answer = createErrorFrameWithMessage("already connected")
 	} else {
 		log.Debug("New connection, adding to map.")
 		connections[frame.Connection] = LogicalConnection{isConnected: true}
@@ -105,12 +113,17 @@ func processConnect(frame parser.Frame) parser.Frame {
 	return answer
 }
 
-func processDefault(frame parser.Frame) parser.Frame {
-	log.Debug("processDefault")
+func processSend(frame parser.Frame) parser.Frame {
+	log.Debug("processSend")
 	answer := parser.NewFrame(parser.ACK)
 
 	answer.AddHeader("not-used:value")
 	answer.AddHeader("schmidtm:welcome back friend")
 
 	return answer
+}
+
+func processDefault(frame parser.Frame) parser.Frame {
+	log.Debug("processDefault")
+	return createErrorFrameWithMessage("Unknown Frame")
 }
