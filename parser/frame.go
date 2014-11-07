@@ -30,6 +30,10 @@ func (f *Frame) HasHeader(header string) bool {
 	return present
 }
 
+func (f *Frame) GetHeader(header string) string {
+	return f.headers[header]
+}
+
 func (f *Frame) AddHeader(header string) error {
 	header = strings.TrimSuffix(header, "\r\n")
 	header = strings.TrimSuffix(header, "\n")

@@ -38,10 +38,12 @@ func FetchFrame() {
 
 		answer := ProcessFrame(frame)
 
-		_, err := frame.Connection.Write([]byte(answer.Render()))
+		if answer.Command != parser.COMMAND_NOT_RECOGNIZED {
+			_, err := frame.Connection.Write([]byte(answer.Render()))
 
-		if err != nil {
-			frame.Connection.Close()
+			if err != nil {
+				frame.Connection.Close()
+			}
 		}
 
 		// if the answer is an error frame, close the connection
@@ -49,6 +51,18 @@ func FetchFrame() {
 			frame.Connection.Close()
 		}
 
+		// do we have to send a receipt after the Frame?
+
+		if frame.HasHeader("receipt") {
+			receipt := parser.NewFrame(parser.RECEIPT)
+			receipt.AddHeader("receipt-id:" + frame.GetHeader("receipt"))
+
+			_, err := frame.Connection.Write([]byte(receipt.Render()))
+
+			if err != nil {
+				frame.Connection.Close()
+			}
+		}
 	}
 }
 
@@ -69,6 +83,14 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 
 			// produce error Frame
 			return createErrorFrameWithMessage(msg)
+		}
+	}
+
+	// Check that receipts are only present on any client frame but CONNECT
+
+	if frame.HasHeader("receipt") {
+		if frame.Command == parser.CONNECT {
+			return createErrorFrameWithMessage("CONNECT frames must not contain receipt headers.")
 		}
 	}
 
@@ -113,12 +135,7 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 func processSend(frame parser.Frame) parser.Frame {
 	log.Debug("processSend")
-	answer := parser.NewFrame(parser.ACK)
-
-	answer.AddHeader("not-used:value")
-	answer.AddHeader("schmidtm:welcome back friend")
-
-	return answer
+	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
 }
 
 func processDefault(frame parser.Frame) parser.Frame {

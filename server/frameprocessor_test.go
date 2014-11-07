@@ -22,7 +22,7 @@ func TestGoodSend(t *testing.T) {
 
 	answer := ProcessFrame(frame)
 
-	if answer.Command != parser.ACK {
+	if answer.Command != parser.COMMAND_NOT_RECOGNIZED {
 		t.Fatalf("What have we got here? : %s", answer.Command)
 	}
 }
