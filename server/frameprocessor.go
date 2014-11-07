@@ -52,7 +52,7 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 
 	for _, header := range frame.Command.GetRequiredHeaders() {
 		if !frame.HasHeader(header) {
-			msg := "Missing header: " + header
+			msg := "Missing header - " + header
 
 			if globals.Config.Testmode {
 				log.Fatal("%s", msg)
@@ -60,6 +60,15 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 			}
 
 			log.Error(msg)
+
+			// produce error Frame, send it and close the connection
+
+			answer := parser.NewFrame(parser.ERROR)
+			answer.AddHeader("message:" + msg)
+
+			frame.Connection.Write([]byte(answer.Render()))
+
+			frame.Connection.Close()
 
 		}
 	}
