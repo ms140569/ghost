@@ -246,7 +246,7 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 	var inputDataSize int = len(data)
 
 	for {
-		number, frame, lastError := RunParser(data)
+		number, frame, lastError := runParser(data)
 
 		log.Debug("Bytes read in this parsing run: %d", number)
 
@@ -281,7 +281,7 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 /*
    This parses a chunk of bytes into one SINGLE Frame
 */
-func RunParser(data []byte) (int, Frame, error) {
+func runParser(data []byte) (int, Frame, error) {
 	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
@@ -296,14 +296,14 @@ func RunParser(data []byte) (int, Frame, error) {
 		return 0, Frame{}, errors.New(msg)
 	}
 
-	parser := CreateAndStartParser(data, tokens)
+	parser := createAndStartParser(data, tokens)
 
 	parser.dumpTokens()
 
 	return parser.bytesConsumed, parser.frame, parser.err
 }
 
-func CreateAndStartParser(data []byte, tokens []Token) Parser {
+func createAndStartParser(data []byte, tokens []Token) Parser {
 	parser := Parser{tokenIndex: 0, tokens: &tokens, data: data}
 	parser.runMachine()
 	return parser
