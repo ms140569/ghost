@@ -1,2 +1,6 @@
-- skip over EOL after frame terminator NULL.
-- get the whole framebuilder right.
+- parse content-length to skip over NULL's
+- implement receipt
+- find a proper testsuite/benchmark
+- Should i only implement v1.2? what's the difference btw. STOMP & CONNECT ?
+- implement protocol negotiation.
+- how to do heart-beating?
