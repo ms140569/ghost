@@ -4,6 +4,7 @@ import (
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
+	"github.com/twinj/uuid"
 	"net"
 	"os"
 )
@@ -128,6 +129,11 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 		answer = parser.NewFrame(parser.CONNECTED)
 		answer.AddHeader("version:1.2")
+
+		// generate a session id
+		sessionId := uuid.NewV4()
+		answer.AddHeader("session:" + sessionId.String())
+
 	}
 
 	return answer
