@@ -33,3 +33,7 @@ func NewConfig(port int, filename string, testmode bool, loglevel string) {
 func produceServerGreeting(GhostPortAsString string) string {
 	return fmt.Sprintf(GhostServerName+" version "+GhostVersionNumber+" running on port: %s", GhostPortAsString)
 }
+
+func GetServerVersionString() string {
+	return GhostServerName + "/" + GhostVersionNumber
+}

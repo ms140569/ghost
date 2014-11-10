@@ -134,6 +134,8 @@ func processConnect(frame parser.Frame) parser.Frame {
 		sessionId := uuid.NewV4()
 		answer.AddHeader("session:" + sessionId.String())
 
+		// server versioin
+		answer.AddHeader("server:" + globals.GetServerVersionString())
 	}
 
 	return answer
