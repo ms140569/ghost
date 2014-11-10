@@ -124,6 +124,24 @@ func processConnect(frame parser.Frame) parser.Frame {
 		log.Debug("Connection know to server")
 		answer = createErrorFrameWithMessage("already connected")
 	} else {
+
+		// FIXME: here should go the code to check for login and passcode
+
+		if frame.HasHeader("login") && frame.HasHeader("passcode") {
+			msg := "login and passcode not supported yet."
+			answer = createErrorFrameWithMessage(msg)
+			log.Warn(msg)
+			return answer
+		}
+
+		// Analyze and setup heartbeating ...
+
+		if frame.HasHeader("heart-beat") {
+			log.Debug("Client requested heartbeating, this style:" + frame.GetHeader("heart-beat"))
+		}
+
+		// store connection for further reuse
+
 		log.Debug("New connection, adding to map.")
 		connections[frame.Connection] = LogicalConnection{isConnected: true}
 
