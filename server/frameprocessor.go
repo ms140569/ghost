@@ -51,19 +51,6 @@ func FetchFrame() {
 		if answer.Command == parser.ERROR {
 			frame.Connection.Close()
 		}
-
-		// do we have to send a receipt after the Frame?
-
-		if frame.HasHeader("receipt") {
-			receipt := parser.NewFrame(parser.RECEIPT)
-			receipt.AddHeader("receipt-id:" + frame.GetHeader("receipt"))
-
-			_, err := frame.Connection.Write([]byte(receipt.Render()))
-
-			if err != nil {
-				frame.Connection.Close()
-			}
-		}
 	}
 }
 
@@ -93,6 +80,15 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		if frame.Command == parser.CONNECT {
 			return createErrorFrameWithMessage("CONNECT frames must not contain receipt headers.")
 		}
+	}
+
+	// do we have to send a receipt after the Frame?
+
+	if frame.HasHeader("receipt") {
+		receipt := parser.NewFrame(parser.RECEIPT)
+		receipt.AddHeader("receipt-id:" + frame.GetHeader("receipt"))
+
+		return receipt
 	}
 
 	// dispatch frame to handler function
