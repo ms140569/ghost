@@ -1,0 +1,22 @@
+Here is the testdata for the content-length header value:
+
+
+Header value:               Data present?   Null byte present?      Expected Success/Failure                    Filename
+-----------------------------------------------------------------------------------------------------------------------------------
+not present                 N/A             yes                     success                                     send-without.stomp
+present, but without value  N/A             N/A                     fail                                        send-with-empty.stomp
+
+present, with zero (0)      no              no                      fail                                        send-with-zero-no-data-no-nullbyte.stomp             
+"                           no              yes                     success                                     send-with-zero-valid.stomp
+"                           yes             no                      fail                                        send-with-zero-data-no-nullbyte.stomp
+"                           yes             yes                     sucess (too much data)                      send-with-zero-toomuch.stomp
+
+present, positive int       yes             yes                     success                                     send-with-positive.stomp
+"                           yes             no                      fail                                        send-with-positive-no-nullbyte.stomp
+
+present, too low value      yes             no                      fail ( NULL not after content-length)       send-with-positive-too-low.stomp
+
+present, too high value     yes             yes                     fail ( content length out-of-buffer)        send-with-positive-too-high.stomp
+
+present, negative value     N/A             N/A                     fail                                        send-with-negative.stomp
+present, alpha value        N/A             N/A                     fail                                        send-with-alpha.stomp

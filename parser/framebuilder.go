@@ -21,7 +21,7 @@ type Parser struct {
 	err           error
 	data          []byte
 	bytesConsumed int
-	nullIdx       int
+	endOfData     int // This could be either populated by the content-length header or the NULL byte location
 }
 
 func (p *Parser) next() Token {
@@ -137,25 +137,56 @@ func getHeadersState(p *Parser) stateFn {
 func saveDataState(p *Parser) stateFn {
 	log.Debug("saveDataState()")
 
-	pos, err := p.nextPos()
+	startOfData, err := p.nextPos()
 
 	if err == nil {
-		log.Debug("Data position: %d", pos)
+		log.Debug("Data position: %d", startOfData)
 
-		nullIdx := bytes.IndexByte(p.data[pos:], 0x00) // look for 0x00 terminator
+		// Is there a content-length header present?
+		length, err := p.frame.GetContentLength()
+
+		if err != nil {
+			p.err = err
+			return badExit
+		}
+
+		// check wether the content-length is out of bounds
+
+		if length+startOfData > len(p.data) {
+			p.err = errors.New("Given content length is out of bounds")
+			return badExit
+		}
+
+		// a NULL byte need to be present in the data in any case, so check for it.
+
+		nullIdx := bytes.IndexByte(p.data[startOfData:], 0x00) // look for 0x00 terminator
 
 		if nullIdx == -1 {
 			p.err = errors.New("No null terminator found, bail out.")
 			return badExit
 		}
 
-		log.Debug("Payload size: %d", nullIdx)
+		endOfData := nullIdx
+
+		if length > -1 {
+			log.Debug("Content-Length given in header: %d", length)
+
+			if p.data[startOfData+length] != 0 {
+				p.err = errors.New("Frame not NULL terminated, but content-length given.")
+				return badExit
+			} else {
+				log.Debug("Use content-length header value for endOfData")
+				endOfData = length
+			}
+		}
+
+		log.Debug("Payload size: %d", endOfData)
 
 		// From the STOMP 1.2 spec:
 		// Only the SEND, MESSAGE, and ERROR frames MAY have a body. All other frames MUST NOT have a body.
 		// Since the SEND Frame is the only client frame we enforce this here
 
-		if nullIdx > 0 && p.frame.Command != SEND {
+		if endOfData > 0 && p.frame.Command != SEND {
 			msg := "Only SEND Frames might have a body."
 
 			if globals.Config.Testmode {
@@ -166,8 +197,8 @@ func saveDataState(p *Parser) stateFn {
 			log.Error(msg)
 		}
 
-		p.frame.payload.Write(p.data[pos : pos+nullIdx])
-		p.nullIdx = pos + nullIdx
+		p.endOfData = startOfData + endOfData
+		p.frame.payload.Write(p.data[startOfData:p.endOfData])
 
 		return swallowTrailingNewline
 	} else {
@@ -180,7 +211,7 @@ func saveDataState(p *Parser) stateFn {
 func swallowTrailingNewline(p *Parser) stateFn {
 	log.Debug("swallowTrailingNewline()")
 
-	var pos int = p.nullIdx + 1 // ignore null byte itself.
+	var pos int = p.endOfData + 1 // ignore null byte itself.
 
 	if pos == len(p.data) {
 		log.Debug("End-of-data after NULL reached.")

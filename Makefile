@@ -42,6 +42,7 @@ backup: clean
 test: all
 	(cd test;./run.sh)
 	(cd test/generator;./runall.sh)
+	(cd test/content-length;./run.sh)
 	go test github.com/ms140569/ghost/log/level
 	go test github.com/ms140569/ghost/parser
 	go test github.com/ms140569/ghost/server

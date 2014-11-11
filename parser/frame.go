@@ -7,6 +7,7 @@ import (
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"net"
+	"strconv"
 	"strings"
 )
 
@@ -104,4 +105,38 @@ func (f *Frame) Render() string {
 	retVal = retVal + fmt.Sprintf("\x00\n")
 
 	return retVal
+}
+
+/*
+   Return the content length possibly given by the "content-length" header.
+   Options are:
+
+   - header NOT given -> -1
+   - header given but empty -> error
+   - header given but not parsable ( negative, ascii, etc.) -> error
+   - header given with accurate positive integer -> integer
+*/
+
+func (f *Frame) GetContentLength() (int, error) {
+	if f.HasHeader("content-length") {
+
+		contentLengthAsString := f.GetHeader("content-length")
+
+		if len(contentLengthAsString) > 0 {
+			contentLength, err := strconv.Atoi(contentLengthAsString)
+			if err != nil {
+				return -2, err
+			} else {
+				if contentLength < 0 {
+					return -2, errors.New("negative content-length value given.")
+				}
+				return contentLength, nil
+			}
+		} else {
+			return -2, errors.New("content-length header given, but empty")
+		}
+	} else {
+		return -1, nil
+	}
+
 }

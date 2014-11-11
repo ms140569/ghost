@@ -1,0 +1,10 @@
+SEND
+accept-version:1.2
+dummy1:
+host:localhost
+destination:gonzo
+content-length:29
+dummy2:
+
+DATA-LINE1
+DATA-LINE2MOREDATA
