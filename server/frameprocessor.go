@@ -1,12 +1,15 @@
 package server
 
 import (
+	"errors"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
 	"github.com/twinj/uuid"
 	"net"
 	"os"
+	"strconv"
+	"strings"
 )
 
 type LogicalConnection struct {
@@ -155,6 +158,46 @@ func processConnect(frame parser.Frame) parser.Frame {
 	}
 
 	return answer
+}
+
+/*
+   Parsing the heartbeat header which is in the form of:
+   outgoing,incoming
+*/
+
+func parseHeartbeat(s string) (int, int, error) {
+	if strings.Count(s, ",") != 1 {
+		return -1, -1, errors.New("Wrong number of commas in heartbeat header.")
+
+	}
+
+	arr := strings.Split(s, ",")
+
+	outString := arr[0]
+	inString := arr[1]
+
+	if len(outString) == 0 || len(inString) == 0 {
+		return -1, -1, errors.New("Either incoming or outgoing time not supplied.")
+	}
+
+	outVal, err := strconv.Atoi(outString)
+
+	if err != nil {
+		return -1, -1, errors.New("Error parsing outvalue")
+	}
+
+	inVal, err := strconv.Atoi(inString)
+
+	if err != nil {
+		return -1, -1, errors.New("Error parsing invalue")
+	}
+
+	if outVal < 0 || inVal < 0 {
+		return -1, -1, errors.New("No negative values allowed")
+	}
+
+	return outVal, inVal, nil
+
 }
 
 func processSend(frame parser.Frame) parser.Frame {
