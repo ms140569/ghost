@@ -9,20 +9,23 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const Separator string = ":"
 
 type Frame struct {
-	Command    Cmd
-	headers    map[string]string
-	payload    bytes.Buffer
-	Connection net.Conn
+	Command      Cmd
+	headers      map[string]string
+	payload      bytes.Buffer
+	Connection   net.Conn
+	receivedTime time.Time // resolution nanoseconds. To be used by heartbeating.
 }
 
 func NewFrame(cmd Cmd) Frame {
 	frame := Frame{Command: cmd}
 	frame.headers = make(map[string]string)
+	frame.receivedTime = time.Now()
 	return frame
 }
 

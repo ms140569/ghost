@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
@@ -13,8 +14,10 @@ import (
 )
 
 type LogicalConnection struct {
-	isConnected  bool
-	isProtocol12 bool
+	isConnected         bool
+	isProtocol12        bool
+	receivingHeartbeats int // in millis
+	sendingHeartbeats   int // in millis
 }
 
 var connections map[net.Conn]LogicalConnection = make(map[net.Conn]LogicalConnection)
@@ -111,6 +114,8 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 func createErrorFrameWithMessage(msg string) parser.Frame {
 	answer := parser.NewFrame(parser.ERROR)
 	answer.AddHeader("message:" + msg)
+
+	log.Error("Created ERROR frame with message: " + msg)
 	return answer
 }
 
@@ -130,24 +135,51 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 		if frame.HasHeader("login") && frame.HasHeader("passcode") {
 			msg := "login and passcode not supported yet."
-			answer = createErrorFrameWithMessage(msg)
-			log.Warn(msg)
-			return answer
-		}
-
-		// Analyze and setup heartbeating ...
-
-		if frame.HasHeader("heart-beat") {
-			log.Debug("Client requested heartbeating, this style:" + frame.GetHeader("heart-beat"))
+			return createErrorFrameWithMessage(msg)
 		}
 
 		// store connection for further reuse
 
 		log.Debug("New connection, adding to map.")
-		connections[frame.Connection] = LogicalConnection{isConnected: true}
+
+		logicalConnection := LogicalConnection{isConnected: true, receivingHeartbeats: 0, sendingHeartbeats: 0}
+
+		connections[frame.Connection] = logicalConnection
 
 		answer = parser.NewFrame(parser.CONNECTED)
 		answer.AddHeader("version:1.2")
+
+		// Analyze and setup heartbeating ...
+
+		if frame.HasHeader("heart-beat") {
+
+			heartbeatConfig := frame.GetHeader("heart-beat")
+
+			log.Debug("Client requested heartbeating, this style:" + heartbeatConfig)
+
+			out, in, err := parseHeartbeat(heartbeatConfig)
+
+			if err != nil {
+				return createErrorFrameWithMessage("Problem parsing heartbeat values.")
+			}
+
+			if out == 0 {
+				log.Debug("Client says it can not send heartbeats")
+			} else {
+				logicalConnection.receivingHeartbeats = max(out, globals.HeartbeatsMinimalInterval)
+			}
+
+			if in == 0 {
+				log.Debug("Client does not want to receive heartbeats")
+			} else {
+				logicalConnection.sendingHeartbeats = max(in, globals.HeartbeatsSendingInterval)
+			}
+
+			heartbeatAnswer := fmt.Sprintf("heart-beat:%d,%d", globals.HeartbeatsMinimalInterval, globals.HeartbeatsSendingInterval)
+
+			answer.AddHeader(heartbeatAnswer)
+
+		}
 
 		// generate a session id
 		sessionId := uuid.NewV4()
@@ -208,4 +240,11 @@ func processSend(frame parser.Frame) parser.Frame {
 func processDefault(frame parser.Frame) parser.Frame {
 	log.Debug("processDefault")
 	return createErrorFrameWithMessage("Unknown Frame")
+}
+
+func max(a, b int) int {
+	if a < b {
+		return b
+	}
+	return a
 }
