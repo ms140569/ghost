@@ -82,6 +82,17 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		}
 	}
 
+	// dispatch frame to handler function
+
+	switch frame.Command {
+	case parser.CONNECT:
+		return processConnect(frame)
+	case parser.SEND:
+		processSend(frame)
+	default:
+		return processDefault(frame)
+	}
+
 	// do we have to send a receipt after the Frame?
 
 	if frame.HasHeader("receipt") {
@@ -91,16 +102,7 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		return receipt
 	}
 
-	// dispatch frame to handler function
-
-	switch frame.Command {
-	case parser.CONNECT:
-		return processConnect(frame)
-	case parser.SEND:
-		return processSend(frame)
-	default:
-		return processDefault(frame)
-	}
+	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
 }
 
 func createErrorFrameWithMessage(msg string) parser.Frame {
