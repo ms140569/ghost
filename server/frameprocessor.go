@@ -95,6 +95,8 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		return processConnect(frame)
 	case parser.SEND:
 		processSend(frame)
+	case parser.DISCONNECT:
+		processDisconnect(frame)
 	default:
 		return processDefault(frame)
 	}
@@ -179,6 +181,8 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 			answer.AddHeader(heartbeatAnswer)
 
+			log.Debug("Heartbeat session for this session, receiving: %d, sending: %d", logicalConnection.receivingHeartbeats, logicalConnection.sendingHeartbeats)
+
 		}
 
 		// generate a session id
@@ -234,6 +238,11 @@ func parseHeartbeat(s string) (int, int, error) {
 
 func processSend(frame parser.Frame) parser.Frame {
 	log.Debug("processSend")
+	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
+}
+
+func processDisconnect(frame parser.Frame) parser.Frame {
+	log.Debug("processDisconnect")
 	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
 }
 

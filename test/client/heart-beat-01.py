@@ -18,8 +18,7 @@ if __name__ == '__main__':
 
     client = Stomp(CONFIG)
 
-    client.connect(connectedTimeout=4, 
-                   headers={'heart-beat': '4000,7000'})
+    client.connect(connectedTimeout=4, heartBeats=(2000,2500))
 
     print "--------------------------------------------------------------------"
     print "state        : ", client.session.state
