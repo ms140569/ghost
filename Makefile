@@ -30,7 +30,7 @@ fmt:
 
 .PHONY: stat
 stat: clean
-	@find . -type f -name \*.go |xargs wc -l
+	@find . -type f -name \*.go -o -name \*.py  |xargs wc -l
 
 $(SCANNER_FILE): $(PARSER_DIR)/stomp.rl
 	ragel -Z -T0 -o $(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
