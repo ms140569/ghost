@@ -16,4 +16,9 @@ const (
 
 	HeartbeatsSendingInterval int = 3000 // in milliseconds, 3s
 	HeartbeatsMinimalInterval int = 100
+
+	// Frame queue size for inbound and outbound
+
+	QueueSizeInbound  int = 50
+	QueueSizeOutbound int = 20
 )

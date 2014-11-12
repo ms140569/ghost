@@ -42,7 +42,7 @@ func Server() {
 		os.Exit(0)
 	}
 
-	InitFrameQueue()
+	InitFrameQueues()
 
 	log.Info(globals.Config.ServerGreeting + "\n")
 

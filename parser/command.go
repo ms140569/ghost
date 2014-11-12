@@ -17,8 +17,14 @@ const (
 	CONNECTED
 	MESSAGE
 	RECEIPT
-	ERROR
+	ERROR // 14
+
+	// here are the synthetic commands no existing as real stomp frames
+	// but used for certain purposes in the code
+
 	COMMAND_NOT_RECOGNIZED // 15
+	NOP                    // no operation (processor did not produce an answer
+	HEARTBEAT              // send a heartbeat to the connection
 )
 
 var StompCommands = map[string]Cmd{
@@ -38,6 +44,8 @@ var StompCommands = map[string]Cmd{
 	"RECEIPT":                RECEIPT,
 	"ERROR":                  ERROR,
 	"COMMAND_NOT_RECOGNIZED": COMMAND_NOT_RECOGNIZED,
+	"NOP":       NOP,
+	"HEARTBEAT": HEARTBEAT,
 }
 
 var requiredHeaders = map[Cmd][]string{

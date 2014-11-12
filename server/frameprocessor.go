@@ -22,35 +22,34 @@ type LogicalConnection struct {
 
 var connections map[net.Conn]LogicalConnection = make(map[net.Conn]LogicalConnection)
 
-var frameQueue chan parser.Frame
+var inboundFrameQueue chan parser.Frame
+var outboundFrameQueue chan parser.Frame
 
-func InitFrameQueue() {
+func InitFrameQueues() {
 
-	frameQueue = make(chan parser.Frame, 50)
+	inboundFrameQueue = make(chan parser.Frame, globals.QueueSizeInbound)
+	outboundFrameQueue = make(chan parser.Frame, globals.QueueSizeOutbound)
 
 	go FetchFrame()
+	go FrameWriter()
 }
 
 func QueueFrame(conn net.Conn, frame parser.Frame) {
 	log.Info("Queing frame: %s", frame.Command)
 
 	frame.Connection = conn
-	frameQueue <- frame
+	inboundFrameQueue <- frame
 }
 
 func FetchFrame() {
 	for {
-		frame := <-frameQueue
+		frame := <-inboundFrameQueue
 		log.Info("Processing single frame: %s", frame.Command.String())
 
 		answer := ProcessFrame(frame)
 
-		if answer.Command != parser.COMMAND_NOT_RECOGNIZED {
-			_, err := frame.Connection.Write([]byte(answer.Render()))
-
-			if err != nil {
-				frame.Connection.Close()
-			}
+		if answer.Command != parser.NOP {
+			writeAnswer(frame.Connection, answer)
 		}
 
 		// if the answer is an error frame, close the connection
@@ -58,6 +57,51 @@ func FetchFrame() {
 			frame.Connection.Close()
 		}
 	}
+}
+
+func FrameWriter() {
+	for {
+		frame := <-outboundFrameQueue
+
+		// we either send a full-fledged frame or a heartbeat
+
+		var output []byte
+
+		if frame.Command == parser.HEARTBEAT {
+			output = []byte("\x0A")
+		} else {
+			output = []byte(frame.Render())
+		}
+
+		_, err := frame.Connection.Write(output)
+
+		if err != nil {
+			frame.Connection.Close()
+		}
+
+	}
+}
+
+/*
+Here we write the answer frame back to the connection. A couple of strategies will evolve over time:
+
+- simple send to the connection ( not save )
+- send to the connection using some lock sync.Lock/Unlock ( better )
+- passing output to a channel to send it
+*/
+
+func writeAnswer(conn net.Conn, answer parser.Frame) {
+
+	answer.Connection = conn
+	outboundFrameQueue <- answer
+
+	/*
+		_, err := conn.Write([]byte(answer.Render()))
+
+		if err != nil {
+			conn.Close()
+		}
+	*/
 }
 
 func ProcessFrame(frame parser.Frame) parser.Frame {
@@ -110,7 +154,8 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		return receipt
 	}
 
-	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
+	// sending an empty, dummy frame to indicate that there is no reply.
+	return parser.NewFrame(parser.NOP)
 }
 
 func createErrorFrameWithMessage(msg string) parser.Frame {
@@ -238,12 +283,12 @@ func parseHeartbeat(s string) (int, int, error) {
 
 func processSend(frame parser.Frame) parser.Frame {
 	log.Debug("processSend")
-	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
+	return parser.NewFrame(parser.NOP)
 }
 
 func processDisconnect(frame parser.Frame) parser.Frame {
 	log.Debug("processDisconnect")
-	return parser.NewFrame(parser.COMMAND_NOT_RECOGNIZED)
+	return parser.NewFrame(parser.NOP)
 }
 
 func processDefault(frame parser.Frame) parser.Frame {
