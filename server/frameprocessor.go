@@ -11,6 +11,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type LogicalConnection struct {
@@ -20,7 +21,11 @@ type LogicalConnection struct {
 	sendingHeartbeats   int // in millis
 }
 
-var connections map[net.Conn]LogicalConnection = make(map[net.Conn]LogicalConnection)
+type ConnectionMap map[net.Conn]LogicalConnection
+
+var connections ConnectionMap = make(ConnectionMap)
+var connectionsToCheck ConnectionMap = make(ConnectionMap)
+var connectionsToKeepAlive ConnectionMap = make(ConnectionMap)
 
 var inboundFrameQueue chan parser.Frame
 var outboundFrameQueue chan parser.Frame
@@ -32,6 +37,28 @@ func InitFrameQueues() {
 
 	go FetchFrame()
 	go FrameWriter()
+
+	// Support for heartbeating
+
+	go HeartBeatSender()
+	go HeartBeatChecker()
+}
+
+// This goroutine sends heartbeats over connections, where this is needed.
+func HeartBeatSender() {
+	log.Info("Heartbeat sender started")
+	for {
+		time.Sleep(5 * time.Second)
+	}
+}
+
+// This goroutine checks whether clients are still alive.
+func HeartBeatChecker() {
+	log.Info("Heartbeat checker started")
+	for {
+		time.Sleep(5 * time.Second)
+	}
+
 }
 
 func QueueFrame(conn net.Conn, frame parser.Frame) {
