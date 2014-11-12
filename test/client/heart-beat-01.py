@@ -1,0 +1,36 @@
+#!/usr/bin/python
+
+import logging, sys
+import time
+from stompest.config import StompConfig
+from stompest.sync import Stomp
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
+
+CONFIG = StompConfig('tcp://localhost:7777', version='1.2')
+
+
+def toTime(input):
+    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(input))
+
+if __name__ == '__main__':
+
+    client = Stomp(CONFIG)
+
+    client.connect(connectedTimeout=4, 
+                   headers={'heart-beat': '4000,7000'})
+
+    print "--------------------------------------------------------------------"
+    print "state        : ", client.session.state
+    print "client HB    : ", client.session.clientHeartBeat
+    print "server HB    : ", client.session.serverHeartBeat
+    print "server       : ", client.session.server
+    print "id           : ", client.session.id
+    print "lastSent     : ", toTime(client.session.lastSent)
+    print "lastReceived : ", toTime(client.session.lastReceived)
+    
+
+    client.disconnect()
+    sys.exit(0)
+    
