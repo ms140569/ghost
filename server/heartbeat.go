@@ -6,6 +6,7 @@ import (
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
+	"net"
 	"strconv"
 	"strings"
 	"time"
@@ -28,7 +29,7 @@ func HeartBeatChecker() {
 
 }
 
-func initializeHeartbeatingForConnection(frame parser.Frame, logicalConnection *LogicalConnection) (string, error) {
+func initializeHeartbeatingForConnection(frame parser.Frame, session *Session) (string, error) {
 	heartbeatConfig := frame.GetHeader("heart-beat")
 
 	log.Debug("Client requested heartbeating, this style:" + heartbeatConfig)
@@ -42,20 +43,20 @@ func initializeHeartbeatingForConnection(frame parser.Frame, logicalConnection *
 	if out == 0 {
 		log.Debug("Client says it can not send heartbeats")
 	} else {
-		(*logicalConnection).receivingHeartbeats = max(out, globals.HeartbeatsMinimalInterval)
+		(*session).receivingHeartbeats = max(out, globals.HeartbeatsMinimalInterval)
 
-		connectionsToCheck[frame.Connection] = *logicalConnection
+		sessionsToCheck[frame.Connection] = session
 	}
 
 	if in == 0 {
 		log.Debug("Client does not want to receive heartbeats")
 	} else {
-		(*logicalConnection).sendingHeartbeats = max(in, globals.HeartbeatsSendingInterval)
+		(*session).sendingHeartbeats = max(in, globals.HeartbeatsSendingInterval)
 
-		connectionsToKeepAlive[frame.Connection] = *logicalConnection
+		sessionsToKeepAlive[frame.Connection] = session
 	}
 
-	log.Debug("Heartbeat setup for this session, receiving: %d, sending: %d", (*logicalConnection).receivingHeartbeats, (*logicalConnection).sendingHeartbeats)
+	log.Debug("Heartbeat setup for this session, receiving: %d, sending: %d", (*session).receivingHeartbeats, (*session).sendingHeartbeats)
 	return fmt.Sprintf("heart-beat:%d,%d", globals.HeartbeatsMinimalInterval, globals.HeartbeatsSendingInterval), nil
 }
 
@@ -104,4 +105,27 @@ func max(a, b int) int {
 		return b
 	}
 	return a
+}
+
+/*
+Handles incoming frames or heartbeats.
+*/
+
+func updateKeepaliveRecords(conn net.Conn) {
+
+	log.Debug("Number of sessions                  : %d", len(sessions))
+	log.Debug("Number of sessions to check         : %d", len(sessionsToCheck))
+	log.Debug("Number of sessions to send heartbeat: %d", len(sessionsToKeepAlive))
+
+	_, present := sessionsToCheck[conn]
+
+	if present {
+		log.Debug("Session found to keep alive, connection: %o", conn)
+		log.Debug("sessionID: %s", sessionsToCheck[conn].id)
+		log.Debug("Number of frames received: %d", sessionsToCheck[conn].numberOfFramesReceived)
+
+		sessionsToCheck[conn].numberOfFramesReceived = sessionsToCheck[conn].numberOfFramesReceived + 1
+	} else {
+		log.Debug("Connection NOT found to be kept alive: %o", conn)
+	}
 }

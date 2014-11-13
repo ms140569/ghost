@@ -7,20 +7,30 @@ import (
 	"github.com/twinj/uuid"
 	"net"
 	"os"
+	"time"
 )
 
-type LogicalConnection struct {
-	isConnected         bool
-	isProtocol12        bool
-	receivingHeartbeats int // in millis
-	sendingHeartbeats   int // in millis
+type Session struct {
+	isConnected  bool
+	isProtocol12 bool
+	id           string
+
+	// in milliseconds
+	receivingHeartbeats int
+	sendingHeartbeats   int
+
+	created               time.Time
+	lastKeepaliveReceived time.Time
+
+	// stats
+	numberOfFramesReceived uint64
 }
 
-type ConnectionMap map[net.Conn]LogicalConnection
+type SessionMap map[net.Conn]*Session
 
-var connections ConnectionMap = make(ConnectionMap)
-var connectionsToCheck ConnectionMap = make(ConnectionMap)
-var connectionsToKeepAlive ConnectionMap = make(ConnectionMap)
+var sessions SessionMap = make(SessionMap)
+var sessionsToCheck SessionMap = make(SessionMap)
+var sessionsToKeepAlive SessionMap = make(SessionMap)
 
 var inboundFrameQueue chan parser.Frame
 var outboundFrameQueue chan parser.Frame
@@ -115,6 +125,8 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 	// that bounced or invalid frames keep connections alive.
 	// I might change my mind on this in the long run.
 
+	updateKeepaliveRecords(frame.Connection)
+
 	// check for required frame headers
 
 	for _, header := range frame.Command.GetRequiredHeaders() {
@@ -180,12 +192,12 @@ func createErrorFrameWithMessage(msg string) parser.Frame {
 func processConnect(frame parser.Frame) parser.Frame {
 	log.Debug("processConnect")
 
-	_, present := connections[frame.Connection]
+	_, present := sessions[frame.Connection]
 
 	var answer parser.Frame
 
 	if present {
-		log.Debug("Connection know to server")
+		log.Debug("Session know to server")
 		answer = createErrorFrameWithMessage("already connected")
 	} else {
 
@@ -196,13 +208,13 @@ func processConnect(frame parser.Frame) parser.Frame {
 			return createErrorFrameWithMessage(msg)
 		}
 
-		// store connection for further reuse
+		// store session for further reuse
 
-		log.Debug("New connection, adding to map.")
+		log.Debug("New session, adding to map.")
 
-		logicalConnection := LogicalConnection{isConnected: true, receivingHeartbeats: 0, sendingHeartbeats: 0}
+		session := Session{isConnected: true, receivingHeartbeats: 0, sendingHeartbeats: 0, numberOfFramesReceived: 1}
 
-		connections[frame.Connection] = logicalConnection
+		sessions[frame.Connection] = &session
 
 		answer = parser.NewFrame(parser.CONNECTED)
 		answer.AddHeader("version:1.2")
@@ -210,7 +222,7 @@ func processConnect(frame parser.Frame) parser.Frame {
 		// Analyze and setup heartbeating ...
 
 		if frame.HasHeader("heart-beat") {
-			heartbeatAnswer, err := initializeHeartbeatingForConnection(frame, &logicalConnection)
+			heartbeatAnswer, err := initializeHeartbeatingForConnection(frame, &session)
 
 			if err != nil {
 				return createErrorFrameWithMessage(err.Error())
@@ -220,8 +232,8 @@ func processConnect(frame parser.Frame) parser.Frame {
 		}
 
 		// generate a session id
-		sessionId := uuid.NewV4()
-		answer.AddHeader("session:" + sessionId.String())
+		session.id = uuid.NewV4().String()
+		answer.AddHeader("session:" + session.id)
 
 		// server versioin
 		answer.AddHeader("server:" + globals.GetServerVersionString())
