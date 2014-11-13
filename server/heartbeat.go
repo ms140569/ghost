@@ -113,19 +113,19 @@ Handles incoming frames or heartbeats.
 
 func updateKeepaliveRecords(conn net.Conn) {
 
-	log.Debug("Number of sessions                  : %d", len(sessions))
-	log.Debug("Number of sessions to check         : %d", len(sessionsToCheck))
-	log.Debug("Number of sessions to send heartbeat: %d", len(sessionsToKeepAlive))
+	log.Debug("Updating status for connection: %o", conn)
+
+	SessionStatus()
 
 	_, present := sessionsToCheck[conn]
 
 	if present {
-		log.Debug("Session found to keep alive, connection: %o", conn)
-		log.Debug("sessionID: %s", sessionsToCheck[conn].id)
-		log.Debug("Number of frames received: %d", sessionsToCheck[conn].numberOfFramesReceived)
+		log.Debug("Session found to keep alive.")
+
+		sessionsToCheck[conn].Dump()
 
 		sessionsToCheck[conn].numberOfFramesReceived = sessionsToCheck[conn].numberOfFramesReceived + 1
 	} else {
-		log.Debug("Connection NOT found to be kept alive: %o", conn)
+		log.Debug("Connection NOT found to be kept alive.")
 	}
 }

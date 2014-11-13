@@ -7,30 +7,7 @@ import (
 	"github.com/twinj/uuid"
 	"net"
 	"os"
-	"time"
 )
-
-type Session struct {
-	isConnected  bool
-	isProtocol12 bool
-	id           string
-
-	// in milliseconds
-	receivingHeartbeats int
-	sendingHeartbeats   int
-
-	created               time.Time
-	lastKeepaliveReceived time.Time
-
-	// stats
-	numberOfFramesReceived uint64
-}
-
-type SessionMap map[net.Conn]*Session
-
-var sessions SessionMap = make(SessionMap)
-var sessionsToCheck SessionMap = make(SessionMap)
-var sessionsToKeepAlive SessionMap = make(SessionMap)
 
 var inboundFrameQueue chan parser.Frame
 var outboundFrameQueue chan parser.Frame
