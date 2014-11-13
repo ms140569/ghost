@@ -81,13 +81,14 @@ func handleConnection(greeting string, conn net.Conn) {
 
 		log.Debug("Network read returned that much bytes:%d", n)
 
-		// if we've received exacty one byte which is an EOL
+		// if we've received exactly one byte which is an EOL
 		// we've got a heartbeat
 
 		if n == 1 && buffer[0] == 0x0A {
 			log.Debug("It's a heartbeat coming from this connection: %o", conn)
 
-			// FIXME: here we have to deal with incoming heartbeats
+			heartbeat := parser.NewFrame(parser.HEARTBEAT)
+			QueueFrame(conn, heartbeat)
 			continue
 		}
 

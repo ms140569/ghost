@@ -14,6 +14,7 @@ TMP_FILES = $(SCANNER_FILE)
 SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DIR)/frame.go $(PARSER_DIR)/token.go \
 	$(GLOBALS_DIR)/constants.go $(GLOBALS_DIR)/config.go \
 	$(SERVER_DIR)/server.go \
+	$(SERVER_DIR)/heartbeat.go \
 	$(SERVER_DIR)/frameprocessor.go \
 	log/logger.go log/level/level.go
 

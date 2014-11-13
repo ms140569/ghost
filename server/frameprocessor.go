@@ -1,17 +1,12 @@
 package server
 
 import (
-	"errors"
-	"fmt"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
 	"github.com/twinj/uuid"
 	"net"
 	"os"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type LogicalConnection struct {
@@ -42,23 +37,6 @@ func InitFrameQueues() {
 
 	go HeartBeatSender()
 	go HeartBeatChecker()
-}
-
-// This goroutine sends heartbeats over connections, where this is needed.
-func HeartBeatSender() {
-	log.Info("Heartbeat sender started")
-	for {
-		time.Sleep(5 * time.Second)
-	}
-}
-
-// This goroutine checks whether clients are still alive.
-func HeartBeatChecker() {
-	log.Info("Heartbeat checker started")
-	for {
-		time.Sleep(5 * time.Second)
-	}
-
 }
 
 func QueueFrame(conn net.Conn, frame parser.Frame) {
@@ -133,6 +111,10 @@ func writeAnswer(conn net.Conn, answer parser.Frame) {
 
 func ProcessFrame(frame parser.Frame) parser.Frame {
 
+	// We do the bookkeepting for heartbeating first, knowing that this means
+	// that bounced or invalid frames keep connections alive.
+	// I might change my mind on this in the long run.
+
 	// check for required frame headers
 
 	for _, header := range frame.Command.GetRequiredHeaders() {
@@ -166,6 +148,8 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		return processConnect(frame)
 	case parser.SEND:
 		processSend(frame)
+	case parser.HEARTBEAT:
+		processHeartbeat(frame)
 	case parser.DISCONNECT:
 		processDisconnect(frame)
 	default:
@@ -226,35 +210,13 @@ func processConnect(frame parser.Frame) parser.Frame {
 		// Analyze and setup heartbeating ...
 
 		if frame.HasHeader("heart-beat") {
-
-			heartbeatConfig := frame.GetHeader("heart-beat")
-
-			log.Debug("Client requested heartbeating, this style:" + heartbeatConfig)
-
-			out, in, err := parseHeartbeat(heartbeatConfig)
+			heartbeatAnswer, err := initializeHeartbeatingForConnection(frame, &logicalConnection)
 
 			if err != nil {
-				return createErrorFrameWithMessage("Problem parsing heartbeat values.")
-			}
-
-			if out == 0 {
-				log.Debug("Client says it can not send heartbeats")
+				return createErrorFrameWithMessage(err.Error())
 			} else {
-				logicalConnection.receivingHeartbeats = max(out, globals.HeartbeatsMinimalInterval)
+				answer.AddHeader(heartbeatAnswer)
 			}
-
-			if in == 0 {
-				log.Debug("Client does not want to receive heartbeats")
-			} else {
-				logicalConnection.sendingHeartbeats = max(in, globals.HeartbeatsSendingInterval)
-			}
-
-			heartbeatAnswer := fmt.Sprintf("heart-beat:%d,%d", globals.HeartbeatsMinimalInterval, globals.HeartbeatsSendingInterval)
-
-			answer.AddHeader(heartbeatAnswer)
-
-			log.Debug("Heartbeat session for this session, receiving: %d, sending: %d", logicalConnection.receivingHeartbeats, logicalConnection.sendingHeartbeats)
-
 		}
 
 		// generate a session id
@@ -268,46 +230,6 @@ func processConnect(frame parser.Frame) parser.Frame {
 	return answer
 }
 
-/*
-   Parsing the heartbeat header which is in the form of:
-   outgoing,incoming
-*/
-
-func parseHeartbeat(s string) (int, int, error) {
-	if strings.Count(s, ",") != 1 {
-		return -1, -1, errors.New("Wrong number of commas in heartbeat header.")
-
-	}
-
-	arr := strings.Split(s, ",")
-
-	outString := arr[0]
-	inString := arr[1]
-
-	if len(outString) == 0 || len(inString) == 0 {
-		return -1, -1, errors.New("Either incoming or outgoing time not supplied.")
-	}
-
-	outVal, err := strconv.Atoi(outString)
-
-	if err != nil {
-		return -1, -1, errors.New("Error parsing outvalue")
-	}
-
-	inVal, err := strconv.Atoi(inString)
-
-	if err != nil {
-		return -1, -1, errors.New("Error parsing invalue")
-	}
-
-	if outVal < 0 || inVal < 0 {
-		return -1, -1, errors.New("No negative values allowed")
-	}
-
-	return outVal, inVal, nil
-
-}
-
 func processSend(frame parser.Frame) parser.Frame {
 	log.Debug("processSend")
 	return parser.NewFrame(parser.NOP)
@@ -318,14 +240,12 @@ func processDisconnect(frame parser.Frame) parser.Frame {
 	return parser.NewFrame(parser.NOP)
 }
 
+func processHeartbeat(frame parser.Frame) parser.Frame {
+	log.Debug("processHeartbeat")
+	return parser.NewFrame(parser.NOP)
+}
+
 func processDefault(frame parser.Frame) parser.Frame {
 	log.Debug("processDefault")
 	return createErrorFrameWithMessage("Unknown Frame")
-}
-
-func max(a, b int) int {
-	if a < b {
-		return b
-	}
-	return a
 }
