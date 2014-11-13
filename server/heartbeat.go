@@ -125,6 +125,7 @@ func updateKeepaliveRecords(conn net.Conn) {
 		sessionsToCheck[conn].Dump()
 
 		sessionsToCheck[conn].numberOfFramesReceived = sessionsToCheck[conn].numberOfFramesReceived + 1
+		sessionsToCheck[conn].lastKeepaliveReceived = time.Now()
 	} else {
 		log.Debug("Connection NOT found to be kept alive.")
 	}

@@ -39,8 +39,8 @@ func (s *Session) Dump() {
 	log.Debug("receivingHeartbeats   : %d", s.receivingHeartbeats)
 	log.Debug("sendingHeartbeats     : %d", s.sendingHeartbeats)
 
-	log.Debug("created               : %s", s.created.Format(layout))
-	log.Debug("lastKeepaliveReceived : %s", s.lastKeepaliveReceived.Format(layout))
+	log.Debug("created               : %s seconds: %d", s.created.Format(layout), s.created.Second())
+	log.Debug("lastKeepaliveReceived : %s seconds: %d", s.lastKeepaliveReceived.Format(layout), s.lastKeepaliveReceived.Second())
 
 	log.Debug("numberOfFramesReceived: %d", s.numberOfFramesReceived)
 

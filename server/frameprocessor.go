@@ -7,6 +7,7 @@ import (
 	"github.com/twinj/uuid"
 	"net"
 	"os"
+	"time"
 )
 
 var inboundFrameQueue chan parser.Frame
@@ -190,6 +191,7 @@ func processConnect(frame parser.Frame) parser.Frame {
 		log.Debug("New session, adding to map.")
 
 		session := Session{isConnected: true, receivingHeartbeats: 0, sendingHeartbeats: 0, numberOfFramesReceived: 1}
+		session.created = time.Now()
 
 		sessions[frame.Connection] = &session
 
