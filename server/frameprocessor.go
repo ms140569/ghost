@@ -4,10 +4,8 @@ import (
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
-	"github.com/twinj/uuid"
 	"net"
 	"os"
-	"time"
 )
 
 var inboundFrameQueue chan parser.Frame
@@ -56,6 +54,8 @@ func FrameWriter() {
 	for {
 		frame := <-outboundFrameQueue
 
+		log.Debug("FrameWriter sending Frame: %s", frame.Command.String())
+
 		// we either send a full-fledged frame or a heartbeat
 
 		var output []byte
@@ -66,10 +66,15 @@ func FrameWriter() {
 			output = []byte(frame.Render())
 		}
 
-		_, err := frame.Connection.Write(output)
+		if frame.Connection == nil {
+			log.Error("No connection to write to in FrameWriter")
+		} else {
+			_, err := frame.Connection.Write(output)
 
-		if err != nil {
-			frame.Connection.Close()
+			if err != nil || frame.Command == parser.ERROR {
+				removeSessionFromMaps(frame.Connection)
+				frame.Connection.Close()
+			}
 		}
 
 	}
@@ -186,12 +191,11 @@ func processConnect(frame parser.Frame) parser.Frame {
 			return createErrorFrameWithMessage(msg)
 		}
 
-		// store session for further reuse
+		// create a new session and store it in the session map for further reuse
 
 		log.Debug("New session, adding to map.")
 
-		session := Session{isConnected: true, receivingHeartbeats: 0, sendingHeartbeats: 0, numberOfFramesReceived: 1}
-		session.created = time.Now()
+		session := NewSession(frame.Connection)
 
 		sessions[frame.Connection] = &session
 
@@ -210,8 +214,6 @@ func processConnect(frame parser.Frame) parser.Frame {
 			}
 		}
 
-		// generate a session id
-		session.id = uuid.NewV4().String()
 		answer.AddHeader("session:" + session.id)
 
 		// server versioin

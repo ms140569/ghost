@@ -2,11 +2,13 @@ package server
 
 import (
 	"github.com/ms140569/ghost/log"
+	"github.com/twinj/uuid"
 	"net"
 	"time"
 )
 
 type Session struct {
+	Connection   net.Conn
 	isConnected  bool
 	isProtocol12 bool
 	id           string
@@ -28,10 +30,28 @@ var sessions SessionMap = make(SessionMap)
 var sessionsToCheck SessionMap = make(SessionMap)
 var sessionsToKeepAlive SessionMap = make(SessionMap)
 
+func NewSession(conn net.Conn) Session {
+	session := Session{isConnected: true, receivingHeartbeats: 0, sendingHeartbeats: 0, numberOfFramesReceived: 1}
+	session.created = time.Now()
+	session.Connection = conn
+
+	// generate a session id
+	session.id = uuid.NewV4().String()
+
+	return session
+}
+
+func removeSessionFromMaps(conn net.Conn) {
+	delete(sessions, conn)
+	delete(sessionsToCheck, conn)
+	delete(sessionsToKeepAlive, conn)
+}
+
 func (s *Session) Dump() {
 
 	const layout = "Jan 2, 2006 at 3:04pm (MST)"
 
+	log.Debug("Connection            : %o", s.Connection)
 	log.Debug("isConnected           : %t", s.isConnected)
 	log.Debug("isProtocol12          : %t", s.isProtocol12)
 	log.Debug("id                    : %s", s.id)

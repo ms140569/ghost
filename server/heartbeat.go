@@ -22,11 +22,29 @@ func HeartBeatSender() {
 
 // This goroutine checks whether clients are still alive.
 func HeartBeatChecker() {
-	log.Info("Heartbeat checker started")
-	for {
-		time.Sleep(5 * time.Second)
-	}
 
+	// this computation might be changed in the long run.
+	// by now we wake up two times more often than the commited
+	// response frequency
+	var interval int = globals.HeartbeatsMinimalInterval / 2
+
+	log.Info("Heartbeat checker started, wakeup frequency is %d", interval)
+	for {
+		time.Sleep(time.Duration(interval) * time.Millisecond)
+
+		for _, session := range sessionsToCheck {
+
+			timeDiff := timeDifferenceInMillis(time.Now(), session.lastKeepaliveReceived)
+			if timeDiff > session.receivingHeartbeats {
+				log.Debug("Cutting of session %s", session.id)
+				writeAnswer(session.Connection, createErrorFrameWithMessage("Disconnecting session, no heartbeats received since: "+strconv.Itoa(timeDiff)))
+			}
+		}
+	}
+}
+
+func timeDifferenceInMillis(now time.Time, past time.Time) int {
+	return int(now.Sub(past).Nanoseconds() / 1000000)
 }
 
 func initializeHeartbeatingForConnection(frame parser.Frame, session *Session) (string, error) {
