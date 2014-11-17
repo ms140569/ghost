@@ -41,6 +41,18 @@ func NewSession(conn net.Conn) Session {
 	return session
 }
 
+// Unregister given connections for session maps, ticker maps etc.
+func UnregisterConnection(conn net.Conn) {
+	removeSessionFromMaps(conn)
+
+	ticker := getTickerForConnection(conn)
+
+	if ticker != nil {
+		log.Debug("Stopping ticker for connection %o", conn)
+		ticker.Stop()
+	}
+}
+
 func removeSessionFromMaps(conn net.Conn) {
 	delete(sessions, conn)
 	delete(sessionsToCheck, conn)

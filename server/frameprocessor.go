@@ -20,8 +20,6 @@ func InitFrameQueues() {
 	go FrameWriter()
 
 	// Support for heartbeating
-
-	go HeartBeatSender()
 	go HeartBeatChecker()
 }
 

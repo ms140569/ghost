@@ -115,4 +115,5 @@ func handleConnection(greeting string, conn net.Conn) {
 
 	log.Debug("Connection from %v closed.", conn.RemoteAddr())
 
+	UnregisterConnection(conn)
 }

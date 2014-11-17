@@ -12,12 +12,17 @@ import (
 	"time"
 )
 
-// This goroutine sends heartbeats over connections, where this is needed.
-func HeartBeatSender() {
-	log.Info("Heartbeat sender started")
-	for {
-		time.Sleep(5 * time.Second)
+type TickerMap map[*time.Ticker]net.Conn
+
+var tickers TickerMap = make(TickerMap)
+
+func getTickerForConnection(conn net.Conn) *time.Ticker {
+	for key, val := range tickers {
+		if val == conn {
+			return key
+		}
 	}
+	return nil
 }
 
 // This goroutine checks whether clients are still alive.
@@ -69,9 +74,40 @@ func initializeHeartbeatingForConnection(frame parser.Frame, session *Session) (
 	if in == 0 {
 		log.Debug("Client does not want to receive heartbeats")
 	} else {
-		(*session).sendingHeartbeats = max(in, globals.HeartbeatsSendingInterval)
+
+		interval := max(in, globals.HeartbeatsSendingInterval)
+
+		(*session).sendingHeartbeats = interval
 
 		sessionsToKeepAlive[frame.Connection] = session
+
+		// setup new Ticker for this connection
+		// this is the trivial implementation don't taking sended
+		// framce as keep-alive signals into account.
+		// I might add this in the long run.
+
+		ticker := time.NewTicker(time.Millisecond * time.Duration(interval))
+
+		// store the new ticker in the tickermap to use it in the callback
+
+		tickers[ticker] = frame.Connection
+
+		go func() {
+			for t := range ticker.C {
+
+				if conn, present := tickers[ticker]; present {
+					log.Debug("Sending heartbeat for Connection: %o, channel: %o", conn, t)
+
+					heartbeat := parser.NewFrame(parser.HEARTBEAT)
+
+					writeAnswer(conn, heartbeat)
+
+				} else {
+					log.Error("Connection for ticker %o not found", ticker)
+				}
+			}
+		}()
+
 	}
 
 	log.Debug("Heartbeat setup for this session, receiving: %d, sending: %d", (*session).receivingHeartbeats, (*session).sendingHeartbeats)
