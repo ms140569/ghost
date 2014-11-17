@@ -4,17 +4,26 @@ import (
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
+	"github.com/ms140569/ghost/storage"
 	"net"
 	"os"
 )
 
 var inboundFrameQueue chan parser.Frame
 var outboundFrameQueue chan parser.Frame
+var store storage.Storekeeper
 
 func InitFrameQueues() {
 
 	inboundFrameQueue = make(chan parser.Frame, globals.QueueSizeInbound)
 	outboundFrameQueue = make(chan parser.Frame, globals.QueueSizeOutbound)
+
+	store = storage.Memory{}
+
+	if !store.Initialize() {
+		log.Fatal("Unable to initialize the storage")
+		os.Exit(3)
+	}
 
 	go FetchFrame()
 	go FrameWriter()
@@ -141,6 +150,10 @@ func ProcessFrame(frame parser.Frame) parser.Frame {
 		return processConnect(frame)
 	case parser.SEND:
 		processSend(frame)
+	case parser.SUBSCRIBE:
+		processSubscribe(frame)
+	case parser.UNSUBSCRIBE:
+		processUnsubscribe(frame)
 	case parser.HEARTBEAT:
 		processHeartbeat(frame)
 	case parser.DISCONNECT:
@@ -223,6 +236,16 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 func processSend(frame parser.Frame) parser.Frame {
 	log.Debug("processSend")
+	return parser.NewFrame(parser.NOP)
+}
+
+func processSubscribe(frame parser.Frame) parser.Frame {
+	log.Debug("processSubscribe")
+	return parser.NewFrame(parser.NOP)
+}
+
+func processUnsubscribe(frame parser.Frame) parser.Frame {
+	log.Debug("processUnsubscribe")
 	return parser.NewFrame(parser.NOP)
 }
 

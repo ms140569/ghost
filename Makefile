@@ -3,6 +3,7 @@ TARGET_DIR=.
 PARSER_DIR=parser
 GLOBALS_DIR=globals
 SERVER_DIR=server
+STORAGE_DIR=storage
 SCANNER_FILE=$(PARSER_DIR)/stomp.go
 BASENAME=$(shell basename ${PWD})
 NOW_STRING=$(shell date +%Y%m%d-%H%M)
@@ -17,6 +18,8 @@ SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DI
 	$(SERVER_DIR)/session.go \
 	$(SERVER_DIR)/heartbeat.go \
 	$(SERVER_DIR)/frameprocessor.go \
+	$(STORAGE_DIR)/storage.go \
+	$(STORAGE_DIR)/memory.go \
 	log/logger.go log/level/level.go
 
 $(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)
