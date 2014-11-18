@@ -6,6 +6,16 @@ import (
 	"strconv"
 )
 
+// These are all the flags provided on the programs command line
+// parsed by golang's flag package
+type FlagBundle struct {
+	Port       int
+	Filename   string
+	Testmode   bool
+	Loglevel   string
+	Configfile string
+}
+
 // Global variable used by the rest of the system
 var Config Configuration
 
@@ -17,17 +27,17 @@ type Configuration struct {
 	ServerGreeting    string
 }
 
-func NewConfig(port int, filename string, testmode bool, loglevel string) {
+func NewConfig(flagBundle FlagBundle) {
 
-	Config = Configuration{port, filename, testmode, "", ""}
+	Config = Configuration{flagBundle.Port, flagBundle.Filename, flagBundle.Testmode, "", ""}
 
-	if len(filename) > 0 {
+	if len(flagBundle.Filename) > 0 {
 		Config.Testmode = true
 	}
 
-	Config.GhostPortAsString = strconv.Itoa(port)
+	Config.GhostPortAsString = strconv.Itoa(flagBundle.Port)
 	Config.ServerGreeting = produceServerGreeting(Config.GhostPortAsString)
-	log.SetSystemLogLevelFromString(loglevel)
+	log.SetSystemLogLevelFromString(flagBundle.Loglevel)
 }
 
 func produceServerGreeting(GhostPortAsString string) string {

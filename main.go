@@ -7,14 +7,20 @@ import (
 )
 
 func main() {
-	var port = flag.Int("p", 7777, "TCP port to listen on")
-	var filename = flag.String("f", "", "Filename of file containing frames.")
-	var testmode = flag.Bool("t", false, "Testmode")
-	var logLevel = flag.String("l", "Debug", "Loglevel the server is running with")
+	globals.NewConfig(parseFlags())
+	server.Server()
+}
+
+func parseFlags() globals.FlagBundle {
+	flagBundle := globals.FlagBundle{}
+
+	flag.IntVar(&flagBundle.Port, "p", 7777, "TCP port to listen on")
+	flag.StringVar(&flagBundle.Filename, "f", "", "Filename of file containing frames.")
+	flag.BoolVar(&flagBundle.Testmode, "t", false, "Testmode")
+	flag.StringVar(&flagBundle.Loglevel, "l", "Debug", "Loglevel the server is running with")
+	flag.StringVar(&flagBundle.Configfile, "c", "", "Program config file")
 
 	flag.Parse()
 
-	globals.NewConfig(*port, *filename, *testmode, *logLevel)
-
-	server.Server()
+	return flagBundle
 }
