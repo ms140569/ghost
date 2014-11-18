@@ -15,7 +15,7 @@ func parseFlags() globals.FlagBundle {
 	flagBundle := globals.FlagBundle{}
 
 	flag.IntVar(&flagBundle.Port, "p", 7777, "TCP port to listen on")
-	flag.StringVar(&flagBundle.Filename, "f", "", "Filename of file containing frames.")
+	flag.StringVar(&flagBundle.Testfilename, "f", "", "Filename of file containing frames.")
 	flag.BoolVar(&flagBundle.Testmode, "t", false, "Testmode")
 	flag.StringVar(&flagBundle.Loglevel, "l", "Debug", "Loglevel the server is running with")
 	flag.StringVar(&flagBundle.Configfile, "c", "", "Program config file")

@@ -11,10 +11,10 @@ import (
 
 func Server() {
 
-	if globals.Config.Testmode && len(globals.Config.Filename) > 0 {
-		log.Info("Running in testmode, using file: %s", globals.Config.Filename)
+	if globals.Config.Testmode && len(globals.Config.Testfilename) > 0 {
+		log.Info("Running in testmode, using file: %s", globals.Config.Testfilename)
 
-		buffer, err := ioutil.ReadFile(globals.Config.Filename)
+		buffer, err := ioutil.ReadFile(globals.Config.Testfilename)
 
 		log.Debug("Reading %d bytes", len(buffer))
 
