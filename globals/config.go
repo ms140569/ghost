@@ -1,7 +1,7 @@
 package globals
 
 import (
-	"encoding/json"
+	"code.google.com/p/gcfg"
 	"fmt"
 	"github.com/ms140569/ghost/log"
 	"os"
@@ -57,28 +57,21 @@ func GetServerVersionString() string {
 }
 
 func readConfigFile(filename string) Configuration {
-	log.Debug("Reading configuration from file: %s", filename)
 
-	file, err := os.Open(filename)
+	// We have to give a struct-in-struct here to match the ini-style sections
+	type Config struct {
+		Basic Configuration
+	}
+
+	cfg := Config{}
+	err := gcfg.ReadFileInto(&cfg, filename)
 
 	if err != nil {
 		log.Fatal("Error reading file: %s", err.Error())
 		os.Exit(4)
 	}
 
-	decoder := json.NewDecoder(file)
-	configuration := Configuration{}
-	err = decoder.Decode(&configuration)
-
-	if err != nil {
-		log.Fatal("error:", err)
-		os.Exit(5)
-	}
-
-	configuration.Dump()
-
-	return configuration
-
+	return cfg.Basic
 }
 
 func (c *Configuration) Dump() {
