@@ -4,23 +4,19 @@ import (
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
-	"github.com/ms140569/ghost/storage"
 	"net"
 	"os"
 )
 
 var inboundFrameQueue chan parser.Frame
 var outboundFrameQueue chan parser.Frame
-var store storage.Storekeeper
 
 func InitFrameQueues() {
 
 	inboundFrameQueue = make(chan parser.Frame, globals.QueueSizeInbound)
 	outboundFrameQueue = make(chan parser.Frame, globals.QueueSizeOutbound)
 
-	store = storage.Memory{}
-
-	if !store.Initialize() {
+	if !globals.Config.Provider.Initialize() {
 		log.Fatal("Unable to initialize the storage")
 		os.Exit(3)
 	}

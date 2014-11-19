@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/gcfg"
 	"fmt"
 	"github.com/ms140569/ghost/log"
+	"github.com/ms140569/ghost/storage"
 	"os"
 	"strconv"
 )
@@ -28,6 +29,8 @@ type Configuration struct {
 	Loglevel          string
 	GhostPortAsString string
 	ServerGreeting    string
+	Storage           string
+	Provider          storage.Storekeeper
 }
 
 // simple config reader, no merging no overlays etc.
@@ -36,12 +39,14 @@ func NewConfig(flagBundle FlagBundle) {
 	if len(flagBundle.Configfile) > 0 {
 		Config = readConfigFile(flagBundle.Configfile)
 	} else {
-		Config = Configuration{flagBundle.Port, flagBundle.Testfilename, flagBundle.Testmode, "Debug", "", ""}
+		Config = Configuration{flagBundle.Port, flagBundle.Testfilename, flagBundle.Testmode, "Debug", "", "", "mem:", nil}
 	}
 
 	if len(Config.Testfilename) > 0 {
 		Config.Testmode = true
 	}
+
+	Config.Provider = storage.CreateStorageprovider(Config.Storage)
 
 	Config.GhostPortAsString = strconv.Itoa(Config.Port)
 	Config.ServerGreeting = produceServerGreeting(Config.GhostPortAsString)
