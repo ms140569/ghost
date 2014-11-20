@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/ms140569/ghost/globals"
+	"github.com/ms140569/ghost/constants"
 	"github.com/ms140569/ghost/log"
 	"net"
 	"strconv"
@@ -49,14 +49,14 @@ func (f *Frame) AddHeader(header string) error {
 
 	// enforcing header related limitations.
 
-	if len(f.headers) >= globals.MaxHeaderSize {
+	if len(f.headers) >= constants.MaxHeaderSize {
 		return errors.New("Maximum number of headers reached")
 	}
 
 	if strings.HasSuffix(header, Separator) {
 		key := strings.TrimSuffix(header, Separator)
 
-		if len(key) > globals.MaxHaederKeyLength {
+		if len(key) > constants.MaxHaederKeyLength {
 			return errors.New("Header key too long.")
 		}
 
@@ -66,11 +66,11 @@ func (f *Frame) AddHeader(header string) error {
 		key := arr[0]
 		val := arr[1]
 
-		if len(key) > globals.MaxHaederKeyLength {
+		if len(key) > constants.MaxHaederKeyLength {
 			return errors.New("Header key too long.")
 		}
 
-		if len(val) > globals.MaxHaederValLength {
+		if len(val) > constants.MaxHaederValLength {
 			return errors.New("Header value too long.")
 		}
 

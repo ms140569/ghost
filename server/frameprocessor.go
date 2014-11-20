@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ms140569/ghost/constants"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
@@ -13,8 +14,8 @@ var outboundFrameQueue chan parser.Frame
 
 func InitFrameQueues() {
 
-	inboundFrameQueue = make(chan parser.Frame, globals.QueueSizeInbound)
-	outboundFrameQueue = make(chan parser.Frame, globals.QueueSizeOutbound)
+	inboundFrameQueue = make(chan parser.Frame, constants.QueueSizeInbound)
+	outboundFrameQueue = make(chan parser.Frame, constants.QueueSizeOutbound)
 
 	if !globals.Config.Provider.Initialize() {
 		log.Fatal("Unable to initialize the storage")

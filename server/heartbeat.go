@@ -3,7 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
-	"github.com/ms140569/ghost/globals"
+	"github.com/ms140569/ghost/constants"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
 	"net"
@@ -31,7 +31,7 @@ func HeartBeatChecker() {
 	// this computation might be changed in the long run.
 	// by now we wake up two times more often than the commited
 	// response frequency
-	var interval int = globals.HeartbeatsMinimalInterval / 2
+	var interval int = constants.HeartbeatsMinimalInterval / 2
 
 	log.Info("Heartbeat checker started, wakeup frequency is %d", interval)
 	for {
@@ -66,7 +66,7 @@ func initializeHeartbeatingForConnection(frame parser.Frame, session *Session) (
 	if out == 0 {
 		log.Debug("Client says it can not send heartbeats")
 	} else {
-		(*session).receivingHeartbeats = max(out, globals.HeartbeatsMinimalInterval)
+		(*session).receivingHeartbeats = max(out, constants.HeartbeatsMinimalInterval)
 
 		sessionsToCheck[frame.Connection] = session
 	}
@@ -75,7 +75,7 @@ func initializeHeartbeatingForConnection(frame parser.Frame, session *Session) (
 		log.Debug("Client does not want to receive heartbeats")
 	} else {
 
-		interval := max(in, globals.HeartbeatsSendingInterval)
+		interval := max(in, constants.HeartbeatsSendingInterval)
 
 		(*session).sendingHeartbeats = interval
 
@@ -111,7 +111,7 @@ func initializeHeartbeatingForConnection(frame parser.Frame, session *Session) (
 	}
 
 	log.Debug("Heartbeat setup for this session, receiving: %d, sending: %d", (*session).receivingHeartbeats, (*session).sendingHeartbeats)
-	return fmt.Sprintf("heart-beat:%d,%d", globals.HeartbeatsMinimalInterval, globals.HeartbeatsSendingInterval), nil
+	return fmt.Sprintf("heart-beat:%d,%d", constants.HeartbeatsMinimalInterval, constants.HeartbeatsSendingInterval), nil
 }
 
 /*

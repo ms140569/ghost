@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/ms140569/ghost/constants"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
@@ -73,7 +74,7 @@ func handleConnection(greeting string, conn net.Conn) {
 	log.Debug("Connection Handler invoked")
 
 	for {
-		buffer := make([]byte, globals.DefaultBufferSize)
+		buffer := make([]byte, constants.DefaultBufferSize)
 
 		n, err := conn.Read(buffer)
 

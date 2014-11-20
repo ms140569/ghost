@@ -2,6 +2,7 @@ package globals
 
 import (
 	"fmt"
+	"github.com/ms140569/ghost/constants"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/storage"
 	"strconv"
@@ -74,11 +75,11 @@ func NewConfig(flagBundle FlagBundle) {
 }
 
 func (c *Configuration) GetServerGreeting() string {
-	return fmt.Sprintf(GhostServerName+" version "+GhostVersionNumber+" running on port: %s", strconv.Itoa(Config.Port))
+	return fmt.Sprintf(constants.GhostServerName+" version "+constants.GhostVersionNumber+" running on port: %s", strconv.Itoa(Config.Port))
 }
 
 func (c *Configuration) GetServerVersionString() string {
-	return GhostServerName + "/" + GhostVersionNumber
+	return constants.GhostServerName + "/" + constants.GhostVersionNumber
 }
 
 func (c *Configuration) Dump() {

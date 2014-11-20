@@ -4,6 +4,7 @@ PARSER_DIR=parser
 GLOBALS_DIR=globals
 SERVER_DIR=server
 STORAGE_DIR=storage
+CONSTANTS_DIR=constants
 SCANNER_FILE=$(PARSER_DIR)/stomp.go
 BASENAME=$(shell basename ${PWD})
 NOW_STRING=$(shell date +%Y%m%d-%H%M)
@@ -13,7 +14,6 @@ all: $(TARGET_DIR)/$(BIN_NAME)
 
 TMP_FILES = $(SCANNER_FILE)
 SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DIR)/frame.go $(PARSER_DIR)/token.go \
-	$(GLOBALS_DIR)/constants.go \
 	$(GLOBALS_DIR)/config.go \
 	$(GLOBALS_DIR)/configfile.go \
 	$(SERVER_DIR)/server.go \
@@ -22,6 +22,7 @@ SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DI
 	$(SERVER_DIR)/frameprocessor.go \
 	$(STORAGE_DIR)/storage.go \
 	$(STORAGE_DIR)/memory.go \
+	$(CONSTANTS_DIR)/constants.go \
 	log/logger.go log/level/level.go
 
 $(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)

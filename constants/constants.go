@@ -1,4 +1,4 @@
-package globals
+package constants
 
 const (
 	DefaultBufferSize int = 16384
