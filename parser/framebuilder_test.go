@@ -11,7 +11,7 @@ func toFrameBody(s string) []byte {
 func TestSimpleConnect(t *testing.T) {
 	buffer := []byte("CONNECT\nsimple:header\n\n\x00")
 
-	bytesConsumed, frames, err := ParseFrames(buffer)
+	bytesConsumed, frames, err := ParseFrames(buffer, true)
 
 	if bytesConsumed == 0 {
 		t.Fatal("No bytes consumed")
@@ -36,7 +36,7 @@ another:value
 
 ` + "\x00")
 
-	bytesConsumed, frames, err := ParseFrames(buffer)
+	bytesConsumed, frames, err := ParseFrames(buffer, true)
 
 	if bytesConsumed == 0 {
 		t.Fatal("No bytes consumed")
@@ -63,7 +63,7 @@ content-type:gonzo
 
 `)
 
-	bytesConsumed, frames, err := ParseFrames(buffer)
+	bytesConsumed, frames, err := ParseFrames(buffer, true)
 
 	if bytesConsumed == 0 {
 		t.Fatal("No bytes consumed")
@@ -81,7 +81,7 @@ content-type:gonzo
 }
 
 func parseAndVerify(t *testing.T, buffer []byte, size int, numberOfFrames int) {
-	bytesConsumed, frames, err := ParseFrames(buffer)
+	bytesConsumed, frames, err := ParseFrames(buffer, true)
 
 	if bytesConsumed != size {
 		t.Fatalf("Parser did not consume the correct number of bytes. Expected: %d, actually consumed: %d", size, bytesConsumed)
@@ -106,7 +106,7 @@ func TestConnect2(t *testing.T) {
 			"content-type:gonzo\n" +
 			"\n")
 
-	bytesConsumed, frames, err := ParseFrames(buffer)
+	bytesConsumed, frames, err := ParseFrames(buffer, true)
 
 	if bytesConsumed == 0 {
 		t.Fatal("No bytes consumed")

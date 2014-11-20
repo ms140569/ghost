@@ -25,7 +25,7 @@ func Server() {
 			os.Exit(1)
 		}
 
-		bytesConsumed, frames, err := parser.ParseFrames(buffer)
+		bytesConsumed, frames, err := parser.ParseFrames(buffer, globals.Config.Testmode)
 
 		log.Debug("Bytes consumed by parser: %d", bytesConsumed)
 
@@ -99,7 +99,7 @@ func handleConnection(greeting string, conn net.Conn) {
 		buffer = buffer[0:n]
 
 		if len(buffer) > 0 {
-			bytesConsumed, frames, err := parser.ParseFrames(buffer)
+			bytesConsumed, frames, err := parser.ParseFrames(buffer, globals.Config.Testmode)
 
 			if err != nil { // log and/or process error but pass on valid frames
 				log.Error(err.Error())

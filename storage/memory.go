@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/ms140569/ghost/log"
+	"github.com/ms140569/ghost/parser"
 	"strings"
 )
 
@@ -40,11 +41,9 @@ func (m Memory) Initialize() bool {
 	return true
 }
 
-/*
 func (m Memory) SendFrame(dest string, frame parser.Frame) {
 	log.Debug("Storing Frame at destination: %s", dest)
 }
-*/
 
 func (m Memory) Dump() {
 	log.Debug("Memory storage provider dump:")

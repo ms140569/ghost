@@ -3,7 +3,6 @@ package parser
 import (
 	"bytes"
 	"errors"
-	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"os"
 	"time"
@@ -22,6 +21,7 @@ type Parser struct {
 	data          []byte
 	bytesConsumed int
 	endOfData     int // This could be either populated by the content-length header or the NULL byte location
+	testmode      bool
 }
 
 func (p *Parser) next() Token {
@@ -189,7 +189,7 @@ func saveDataState(p *Parser) stateFn {
 		if endOfData > 0 && p.frame.Command != SEND {
 			msg := "Only SEND Frames might have a body."
 
-			if globals.Config.Testmode {
+			if p.testmode {
 				log.Fatal("%s", msg)
 				os.Exit(1)
 			}
@@ -268,7 +268,7 @@ func cleanupAndExitMachine(p *Parser) stateFn {
 /*
 Parses the input data given in the slice into a slice of Frames.
 */
-func ParseFrames(data []byte) (int, []Frame, error) {
+func ParseFrames(data []byte, testmode bool) (int, []Frame, error) {
 
 	frames := []Frame{}
 
@@ -277,13 +277,13 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 	var inputDataSize int = len(data)
 
 	for {
-		number, frame, lastError := runParser(data)
+		number, frame, lastError := runParser(data, testmode)
 
 		log.Debug("Bytes read in this parsing run: %d", number)
 
 		if lastError != nil {
 
-			if globals.Config.Testmode {
+			if testmode {
 				log.Fatal("Last parsing returned an error: %s", lastError.Error())
 				os.Exit(1)
 			}
@@ -312,13 +312,13 @@ func ParseFrames(data []byte) (int, []Frame, error) {
 /*
    This parses a chunk of bytes into one SINGLE Frame
 */
-func runParser(data []byte) (int, Frame, error) {
+func runParser(data []byte, testmode bool) (int, Frame, error) {
 	tokens := Scanner(data)
 
 	if len(tokens) < 1 {
 		msg := "Received no tokens, something is broken"
 
-		if globals.Config.Testmode {
+		if testmode {
 			log.Fatal("%s", msg)
 			os.Exit(1)
 		}
@@ -327,15 +327,15 @@ func runParser(data []byte) (int, Frame, error) {
 		return 0, Frame{}, errors.New(msg)
 	}
 
-	parser := createAndStartParser(data, tokens)
+	parser := createAndStartParser(data, tokens, testmode)
 
 	parser.dumpTokens()
 
 	return parser.bytesConsumed, parser.frame, parser.err
 }
 
-func createAndStartParser(data []byte, tokens []Token) Parser {
-	parser := Parser{tokenIndex: 0, tokens: &tokens, data: data}
+func createAndStartParser(data []byte, tokens []Token, testmode bool) Parser {
+	parser := Parser{tokenIndex: 0, tokens: &tokens, data: data, testmode: testmode}
 	parser.runMachine()
 	return parser
 }
