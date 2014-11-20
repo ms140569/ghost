@@ -11,6 +11,7 @@ import (
 
 type Storekeeper interface {
 	Initialize() bool
+	// SendFrame(string, parser.Frame)
 }
 
 /*
@@ -32,16 +33,16 @@ sqlite3:
 
 */
 
-func CreateStorageprovider(configString string) Storekeeper {
+func New(configString string) Storekeeper {
 	arr := strings.Split(configString, ":")
 	method := arr[0]
-	// config := arr[1]
+	config := arr[1]
 
 	// log.Debug("Creating storage provider for config: %s", configString)
 
 	switch method {
 	case "mem":
-		return Memory{}
+		return NewMemory(config)
 	default:
 		log.Fatal("Storage provider unkonwn: %s", method)
 		os.Exit(5)

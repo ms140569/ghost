@@ -64,13 +64,13 @@ func NewConfig(flagBundle FlagBundle) {
 		Config.Port = 7777
 	}
 
-	if len(configFile.Storage) > 0 {
-		Config.Provider = storage.CreateStorageprovider(configFile.Storage)
-	} else {
-		Config.Provider = storage.CreateStorageprovider("mem:")
-	}
-
 	log.SetSystemLogLevelFromString(Config.Loglevel)
+
+	if len(configFile.Storage) > 0 {
+		Config.Provider = storage.New(configFile.Storage)
+	} else {
+		Config.Provider = storage.New("mem:")
+	}
 }
 
 func (c *Configuration) GetServerGreeting() string {
