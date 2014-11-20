@@ -2,6 +2,7 @@ package storage
 
 import (
 	"github.com/ms140569/ghost/log"
+	"github.com/ms140569/ghost/parser"
 	"os"
 	"strings"
 )
@@ -11,7 +12,7 @@ import (
 
 type Storekeeper interface {
 	Initialize() bool
-	// SendFrame(string, parser.Frame)
+	SendFrame(string, parser.Frame)
 }
 
 /*

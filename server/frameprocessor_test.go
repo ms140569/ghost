@@ -1,7 +1,9 @@
 package server
 
 import (
+	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/parser"
+	"github.com/ms140569/ghost/storage"
 	"testing"
 )
 
@@ -17,6 +19,10 @@ func TestMissingHeaderOnSend1(t *testing.T) {
 }
 
 func TestGoodSend(t *testing.T) {
+
+	globals.Config = globals.Configuration{}
+	globals.Config.Storage = storage.Memory{}
+
 	frame := parser.NewFrame(parser.SEND)
 	frame.AddHeader("destination:ok")
 

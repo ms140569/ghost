@@ -17,7 +17,7 @@ func InitFrameQueues() {
 	inboundFrameQueue = make(chan parser.Frame, constants.QueueSizeInbound)
 	outboundFrameQueue = make(chan parser.Frame, constants.QueueSizeOutbound)
 
-	if !globals.Config.Provider.Initialize() {
+	if !globals.Config.Storage.Initialize() {
 		log.Fatal("Unable to initialize the storage")
 		os.Exit(3)
 	}
@@ -233,6 +233,9 @@ func processConnect(frame parser.Frame) parser.Frame {
 
 func processSend(frame parser.Frame) parser.Frame {
 	log.Debug("processSend")
+
+	globals.Config.Storage.SendFrame("gonzo", frame)
+
 	return parser.NewFrame(parser.NOP)
 }
 

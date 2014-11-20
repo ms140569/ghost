@@ -26,7 +26,7 @@ type Configuration struct {
 	Testfilename string
 	Testmode     bool
 	Loglevel     string
-	Provider     storage.Storekeeper
+	Storage      storage.Storekeeper
 }
 
 func NewConfig(flagBundle FlagBundle) {
@@ -68,9 +68,9 @@ func NewConfig(flagBundle FlagBundle) {
 	log.SetSystemLogLevelFromString(Config.Loglevel)
 
 	if len(configFile.Storage) > 0 {
-		Config.Provider = storage.New(configFile.Storage)
+		Config.Storage = storage.New(configFile.Storage)
 	} else {
-		Config.Provider = storage.New("mem:")
+		Config.Storage = storage.New("mem:")
 	}
 }
 
