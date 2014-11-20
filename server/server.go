@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"strconv"
 )
 
 func Server() {
@@ -44,12 +45,14 @@ func Server() {
 
 	InitFrameQueues()
 
-	log.Info(globals.Config.ServerGreeting + "\n")
+	log.Info(globals.Config.GetServerGreeting() + "\n")
 
-	listener, err := net.Listen("tcp", ":"+globals.Config.GhostPortAsString)
+	portAsString := strconv.Itoa(globals.Config.Port)
+
+	listener, err := net.Listen("tcp", ":"+portAsString)
 
 	if err != nil {
-		log.Fatal("Unable to Listen on port: %s"+globals.Config.GhostPortAsString, err)
+		log.Fatal("Unable to Listen on port: %s"+portAsString, err)
 		os.Exit(1)
 	}
 
@@ -61,7 +64,7 @@ func Server() {
 			continue
 		}
 
-		go handleConnection(globals.Config.ServerGreeting, conn)
+		go handleConnection(globals.Config.GetServerGreeting(), conn)
 	}
 
 }

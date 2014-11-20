@@ -224,7 +224,7 @@ func processConnect(frame parser.Frame) parser.Frame {
 		answer.AddHeader("session:" + session.id)
 
 		// server versioin
-		answer.AddHeader("server:" + globals.GetServerVersionString())
+		answer.AddHeader("server:" + globals.Config.GetServerVersionString())
 	}
 
 	return answer

@@ -13,7 +13,9 @@ all: $(TARGET_DIR)/$(BIN_NAME)
 
 TMP_FILES = $(SCANNER_FILE)
 SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DIR)/frame.go $(PARSER_DIR)/token.go \
-	$(GLOBALS_DIR)/constants.go $(GLOBALS_DIR)/config.go \
+	$(GLOBALS_DIR)/constants.go \
+	$(GLOBALS_DIR)/config.go \
+	$(GLOBALS_DIR)/configfile.go \
 	$(SERVER_DIR)/server.go \
 	$(SERVER_DIR)/session.go \
 	$(SERVER_DIR)/heartbeat.go \

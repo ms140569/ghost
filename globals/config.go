@@ -1,11 +1,9 @@
 package globals
 
 import (
-	"code.google.com/p/gcfg"
 	"fmt"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/storage"
-	"os"
 	"strconv"
 )
 
@@ -23,60 +21,60 @@ type FlagBundle struct {
 var Config Configuration
 
 type Configuration struct {
-	Port              int
-	Testfilename      string
-	Testmode          bool
-	Loglevel          string
-	GhostPortAsString string
-	ServerGreeting    string
-	Storage           string
-	Provider          storage.Storekeeper
+	Port         int
+	Testfilename string
+	Testmode     bool
+	Loglevel     string
+	Provider     storage.Storekeeper
 }
 
-// simple config reader, no merging no overlays etc.
 func NewConfig(flagBundle FlagBundle) {
 
+	var configFile ConfigFile
+
 	if len(flagBundle.Configfile) > 0 {
-		Config = readConfigFile(flagBundle.Configfile)
-	} else {
-		Config = Configuration{flagBundle.Port, flagBundle.Testfilename, flagBundle.Testmode, "Debug", "", "", "mem:", nil}
+		configFile = readConfigFile(flagBundle.Configfile)
 	}
+
+	Config = Configuration{configFile.Port, configFile.Testfilename, configFile.Testmode, configFile.Loglevel, nil}
+
+	// merging command line parameters
+
+	if flagBundle.Port > 0 {
+		Config.Port = flagBundle.Port
+	}
+
+	if len(flagBundle.Testfilename) > 0 {
+		Config.Testfilename = flagBundle.Testfilename
+	}
+
+	Config.Testmode = flagBundle.Testmode
+
+	if len(flagBundle.Loglevel) > 0 {
+		Config.Loglevel = flagBundle.Loglevel
+	}
+
+	// checks
 
 	if len(Config.Testfilename) > 0 {
 		Config.Testmode = true
 	}
 
-	Config.Provider = storage.CreateStorageprovider(Config.Storage)
+	if len(configFile.Storage) > 0 {
+		Config.Provider = storage.CreateStorageprovider(configFile.Storage)
+	} else {
+		Config.Provider = storage.CreateStorageprovider("mem:")
+	}
 
-	Config.GhostPortAsString = strconv.Itoa(Config.Port)
-	Config.ServerGreeting = produceServerGreeting(Config.GhostPortAsString)
 	log.SetSystemLogLevelFromString(Config.Loglevel)
 }
 
-func produceServerGreeting(GhostPortAsString string) string {
-	return fmt.Sprintf(GhostServerName+" version "+GhostVersionNumber+" running on port: %s", GhostPortAsString)
+func (c *Configuration) GetServerGreeting() string {
+	return fmt.Sprintf(GhostServerName+" version "+GhostVersionNumber+" running on port: %s", strconv.Itoa(Config.Port))
 }
 
-func GetServerVersionString() string {
+func (c *Configuration) GetServerVersionString() string {
 	return GhostServerName + "/" + GhostVersionNumber
-}
-
-func readConfigFile(filename string) Configuration {
-
-	// We have to give a struct-in-struct here to match the ini-style sections
-	type Config struct {
-		Basic Configuration
-	}
-
-	cfg := Config{}
-	err := gcfg.ReadFileInto(&cfg, filename)
-
-	if err != nil {
-		log.Fatal("Error reading file: %s", err.Error())
-		os.Exit(4)
-	}
-
-	return cfg.Basic
 }
 
 func (c *Configuration) Dump() {
