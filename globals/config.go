@@ -54,10 +54,14 @@ func NewConfig(flagBundle FlagBundle) {
 		Config.Loglevel = flagBundle.Loglevel
 	}
 
-	// checks
+	// checks and defaults
 
 	if len(Config.Testfilename) > 0 {
 		Config.Testmode = true
+	}
+
+	if Config.Port == 0 {
+		Config.Port = 7777
 	}
 
 	if len(configFile.Storage) > 0 {

@@ -37,7 +37,7 @@ func CreateStorageprovider(configString string) Storekeeper {
 	method := arr[0]
 	// config := arr[1]
 
-	log.Debug("Creating storage provider for config: %s", configString)
+	// log.Debug("Creating storage provider for config: %s", configString)
 
 	switch method {
 	case "mem":
