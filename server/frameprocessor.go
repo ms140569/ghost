@@ -17,8 +17,8 @@ func InitFrameQueues() {
 	inboundFrameQueue = make(chan parser.Frame, constants.QueueSizeInbound)
 	outboundFrameQueue = make(chan parser.Frame, constants.QueueSizeOutbound)
 
-	if !globals.Config.Storage.Initialize() {
-		log.Fatal("Unable to initialize the storage")
+	if err := globals.Config.Storage.Initialize(); err != nil {
+		log.Fatal("Unable to initialize the storage: %s", err.Error())
 		os.Exit(3)
 	}
 
@@ -241,6 +241,13 @@ func processSend(frame parser.Frame) parser.Frame {
 
 func processSubscribe(frame parser.Frame) parser.Frame {
 	log.Debug("processSubscribe")
+
+	// the existance of the 'destination' and 'id' header should
+	// have been verified in general before hitting this handler
+	// now we have to verify that this destination exits
+
+	globals.Config.Storage.Subscribe(frame.GetHeader("destination"), frame.GetHeader("id"))
+
 	return parser.NewFrame(parser.NOP)
 }
 

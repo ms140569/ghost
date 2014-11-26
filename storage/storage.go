@@ -11,8 +11,9 @@ import (
 // implemented by the various provider
 
 type Storekeeper interface {
-	Initialize() bool
-	SendFrame(string, parser.Frame)
+	Initialize() error
+	SendFrame(destination string, frame parser.Frame) error
+	Subscribe(destination string, id string) error
 }
 
 /*
