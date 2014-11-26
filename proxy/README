@@ -1,0 +1,7 @@
+You need to have HAProxy from haproxy.org installed:
+
+apt-get install haproxy
+
+To run in the foreground with local configuration:
+
+haproxy -V -f haproxy-stomp.cfg
