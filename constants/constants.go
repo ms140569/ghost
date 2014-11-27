@@ -21,4 +21,10 @@ const (
 
 	QueueSizeInbound  int = 50
 	QueueSizeOutbound int = 20
+
+	// Default Port Numbers if nothing is given
+
+	DefaultStompPortNumber  int = 7777
+	DefaultRestPortNumber   int = 7778
+	DefaultTelnetPortNumber int = 7779
 )

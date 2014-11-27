@@ -62,7 +62,7 @@ func NewConfig(flagBundle FlagBundle) {
 	}
 
 	if Config.Port == 0 {
-		Config.Port = 7777
+		Config.Port = constants.DefaultStompPortNumber
 	}
 
 	log.SetSystemLogLevelFromString(Config.Loglevel)

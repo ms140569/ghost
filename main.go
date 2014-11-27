@@ -4,10 +4,14 @@ import (
 	"flag"
 	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/server"
+	"github.com/ms140569/ghost/server/admin"
 )
 
 func main() {
 	globals.NewConfig(parseFlags())
+
+	admin.StartTelnetAdminServer()
+
 	server.Server()
 }
 
