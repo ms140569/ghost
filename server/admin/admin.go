@@ -48,6 +48,21 @@ func StartTelnetAdminServer() {
 
 }
 
+/*
+Handler for simple commands like:
+
+dest list
+dest create <name>
+dest delete <name>
+dest stat <name>
+
+help
+status
+quit
+
+
+*/
+
 func handleTelnetConnection(conn net.Conn) {
 	log.Debug("Connection Handler invoked")
 

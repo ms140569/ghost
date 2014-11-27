@@ -3,16 +3,20 @@ TARGET_DIR=.
 PARSER_DIR=parser
 GLOBALS_DIR=globals
 SERVER_DIR=server
+ADMIN_DIR=server/admin
 STORAGE_DIR=storage
 CONSTANTS_DIR=constants
 SCANNER_FILE=$(PARSER_DIR)/stomp.go
+ADMIN_FILE=$(ADMIN_DIR)/adminshell.go
+
 BASENAME=$(shell basename ${PWD})
 NOW_STRING=$(shell date +%Y%m%d-%H%M)
 BACKUP_FILE=$(BASENAME)-$(NOW_STRING).tar.gz
 
 all: $(TARGET_DIR)/$(BIN_NAME)
 
-TMP_FILES = $(SCANNER_FILE)
+TMP_FILES = $(SCANNER_FILE) $(ADMIN_FILE)
+
 SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DIR)/frame.go $(PARSER_DIR)/token.go \
 	$(GLOBALS_DIR)/config.go \
 	$(GLOBALS_DIR)/configfile.go \
@@ -25,7 +29,7 @@ SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DI
 	$(CONSTANTS_DIR)/constants.go \
 	log/logger.go log/level/level.go
 
-$(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(SRC)
+$(TARGET_DIR)/$(BIN_NAME): $(SCANNER_FILE) $(ADMIN_FILE) $(SRC)
 	go build -o $(BIN_NAME)
 
 .PHONY: clean
@@ -43,6 +47,9 @@ stat: clean
 $(SCANNER_FILE): $(PARSER_DIR)/stomp.rl
 	ragel -Z -T0 -o $(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
 
+$(ADMIN_FILE): $(ADMIN_DIR)/adminshell.rl
+	ragel -Z -T0 -o $(ADMIN_FILE) $(ADMIN_DIR)/adminshell.rl 
+
 backup: clean
 	(cd .. ; tar czvf $(BACKUP_FILE) $(BASENAME) ; cd -)
 
@@ -54,6 +61,7 @@ test: all
 	go test github.com/ms140569/ghost/log/level
 	go test github.com/ms140569/ghost/parser
 	go test github.com/ms140569/ghost/server
+	go test github.com/ms140569/ghost/server/admin
 
 run: $(TARGET_DIR)/$(BIN_NAME)
 	$(TARGET_DIR)/$(BIN_NAME)		
