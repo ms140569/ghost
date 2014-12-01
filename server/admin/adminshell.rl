@@ -10,6 +10,7 @@ dest stat <name>
 help
 status
 quit
+show <name>
 
 */
 
@@ -25,32 +26,30 @@ import (
 }%%
 
 func command_lexer(data []byte, tokenArray *[]Shellcommand) {
-	// These variables need to be predefined to get the ragel scanner running, 
-    // see section 6.3 of the ragel userguide.
 	act, ts, te, cs, p, pe := 0, 0, 0, 0, 0, len(data);
 
-	var _, _, _ = act, ts, te; // This is to disable go's variable-declared-but-not-used error.
+	var _, _, _ = act, ts, te; 
 
 	%%{
-		EOL = "\r"? . "\n";
-		SPACE = " ";
-		STRING = /[a-zA-Z0-9_\+\-\.\/\,]/+;
 
-		commands = "status" | "help" | "quit" | "dest";
+		action emit {
+			log.Debug("emmitting stuff")
+		}
 
-		main := |*
+		eol = "\r"? . "\n";
 
-		commands => {
-		    // command := data[ts:te];
-		    emitToken(Shellcommand{}, tokenArray) 
-			};
-		
-		EOL =>    { 
-			emitToken(Shellcommand{}, tokenArray) 
-		};
+		simple_cmd = "status" | "help" | "quit" | "show";
 
+		base_cmd_dest = "dest";
+		sub_cmd_dest = "list" | "create" | "delete" | "stat" ;
+		dest_grp = base_cmd_dest space sub_cmd_dest;
 
-		*|;
+		cmd = ( simple_cmd | dest_grp );
+
+		lineval = cmd (space any+)?;
+		line = lineval eol;
+
+		main := line @emit;
 
 		write init;
 		write exec;

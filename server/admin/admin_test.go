@@ -14,4 +14,10 @@ func TestCommandParsing(t *testing.T) {
 	if len(commandsParsed) > 0 {
 		t.Fatalf("This should produce *no* result: %s", input)
 	}
+
+	CommandScanner([]byte("status\n"))
+	CommandScanner([]byte("dest\n"))
+	CommandScanner([]byte("dest gonzo\n"))
+	CommandScanner([]byte("dest list\n"))
+	CommandScanner([]byte("show something\n"))
 }
