@@ -26,30 +26,35 @@ import (
 }%%
 
 func command_lexer(data []byte, tokenArray *[]Shellcommand) {
-	act, ts, te, cs, p, pe := 0, 0, 0, 0, 0, len(data);
 
-	var _, _, _ = act, ts, te; 
+	cs, p, pe := 0, 0, len(data);
 
 	%%{
 
-		action emit {
-			log.Debug("emmitting stuff")
+		action emitDest {
+			log.Debug("emmitting stuff: %s", string(data[0:pe]))
+			log.Debug("cs, p, pe - %d, %d, %d", cs, p, pe)
+		}
+
+		action emitSimple {
+			log.Debug("Emmitting simple command: %s", string(data[0:pe]))
+			log.Debug("cs, p, pe - %d, %d, %d", cs, p, pe)
 		}
 
 		eol = "\r"? . "\n";
 
-		simple_cmd = "status" | "help" | "quit" | "show";
+		simple_cmd = ("status" | "help" | "quit" | "show") > emitSimple;
 
 		base_cmd_dest = "dest";
-		sub_cmd_dest = "list" | "create" | "delete" | "stat" ;
-		dest_grp = base_cmd_dest space sub_cmd_dest;
+		sub_cmd_dest = "list" | "create" | "delete" | "stat";
+		dest_grp = base_cmd_dest space sub_cmd_dest > emitDest;
 
 		cmd = ( simple_cmd | dest_grp );
 
 		lineval = cmd (space any+)?;
 		line = lineval eol;
 
-		main := line @emit;
+		main := line;
 
 		write init;
 		write exec;

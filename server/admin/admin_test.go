@@ -20,4 +20,6 @@ func TestCommandParsing(t *testing.T) {
 	CommandScanner([]byte("dest gonzo\n"))
 	CommandScanner([]byte("dest list\n"))
 	CommandScanner([]byte("show something\n"))
+	CommandScanner([]byte("quit\n"))
+	CommandScanner([]byte("quit param\n"))
 }
