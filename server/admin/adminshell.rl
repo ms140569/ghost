@@ -25,11 +25,35 @@ import (
         write data;
 }%%
 
-func command_lexer(data []byte, tokenArray *[]Shellcommand) {
+func command_lexer(data []byte) Shellcommand {
 
 	cs, p, pe := 0, 0, len(data);
+	mark := 0;
+
+	baseCommand := "";
+	subCommand := "";
+	param := "";
 
 	%%{
+
+		action mark { mark = p }
+		
+		action saveBase { 
+			// log.Debug("SAVING: cs, p, pe - %d, %d, %d", cs, p, pe)
+			baseCommand = string(data[mark:p]); 
+			mark = p
+		}
+
+		action saveSub { 
+			// log.Debug("SAVING: cs, p, pe - %d, %d, %d", cs, p, pe)
+			subCommand = string(data[mark:p]); 
+		}
+
+		action saveParam { 
+			// log.Debug("SAVING: cs, p, pe - %d, %d, %d", cs, p, pe)
+			param = string(data[mark:p]); 
+		}
+
 
 		action emitDest {
 			log.Debug("emmitting stuff: %s", string(data[0:pe]))
@@ -43,15 +67,16 @@ func command_lexer(data []byte, tokenArray *[]Shellcommand) {
 
 		eol = "\r"? . "\n";
 
-		simple_cmd = ("status" | "help" | "quit" | "show") > emitSimple;
+		simple_cmd = ("status" | "help" | "quit" | "show") >mark %saveBase;
 
-		base_cmd_dest = "dest";
-		sub_cmd_dest = "list" | "create" | "delete" | "stat";
-		dest_grp = base_cmd_dest space sub_cmd_dest > emitDest;
+		base_cmd_dest = "dest" >mark %saveBase;
+		sub_cmd_dest = "list" | "create" | "delete" | "stat" %saveSub;
 
-		cmd = ( simple_cmd | dest_grp );
+		dest_grp = base_cmd_dest space sub_cmd_dest;
 
-		lineval = cmd (space any+)?;
+		cmd = ( simple_cmd | dest_grp ) >mark;
+
+		lineval = cmd (space any+)? %saveParam;
 		line = lineval eol;
 
 		main := line;
@@ -61,21 +86,18 @@ func command_lexer(data []byte, tokenArray *[]Shellcommand) {
 
 	}%%
 
+    log.Debug("Command    : %s", baseCommand) 
+	log.Debug("Subcommand : %s", subCommand) 
+	log.Debug("Param      : %s", param) 
+
+	return Shellcommand{name : QUIT, sub: subCommand, param: param}
+
 }
 
-func CommandScanner(content [] byte) []Shellcommand {
+func CommandScanner(content [] byte) Shellcommand {
 	log.Debug("CommandScanner--------------------------------------");
-    log.Debug(string(content));
+    log.Debug("Input      : %s", string(content));
 
-	tokenArray := []Shellcommand {}
+	return command_lexer(content);
 
-	command_lexer(content, &tokenArray);
-
-	log.Debug("Token appended, len: %d", len(tokenArray))
-
-	return tokenArray;
-}
-
-func emitToken(token Shellcommand, tokenArray *[]Shellcommand) {
-	*tokenArray = append(*tokenArray, token)
 }

@@ -7,13 +7,14 @@ const (
 	HELP
 	QUIT
 	DEST
+	SHOW
 	EOL
 )
 
 type Shellcommand struct {
 	name  Name
 	sub   string
-	value interface{}
+	param string
 }
 
 func (t Shellcommand) String() string {
