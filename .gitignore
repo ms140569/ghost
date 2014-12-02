@@ -1,3 +1,5 @@
 stomp.go
 adminshell.go
 ghostd
+parser/stomp.dot
+server/admin/adminshell.dot

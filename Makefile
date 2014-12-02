@@ -45,10 +45,12 @@ stat: clean
 	@find . -type f -name \*.go -o -name \*.py  |xargs wc -l
 
 $(SCANNER_FILE): $(PARSER_DIR)/stomp.rl
-	ragel -Z -T0 -o $(SCANNER_FILE) $(PARSER_DIR)/stomp.rl 
+	ragel -Z -T0 -o $(SCANNER_FILE) $(PARSER_DIR)/stomp.rl
+	ragel -V -Z -p -o $(PARSER_DIR)/stomp.dot $(PARSER_DIR)/stomp.rl 
 
 $(ADMIN_FILE): $(ADMIN_DIR)/adminshell.rl
 	ragel -Z -T0 -o $(ADMIN_FILE) $(ADMIN_DIR)/adminshell.rl 
+	ragel -V -Z -p -o $(ADMIN_DIR)/adminshell.dot $(ADMIN_DIR)/adminshell.rl
 
 backup: clean
 	(cd .. ; tar czvf $(BACKUP_FILE) $(BASENAME) ; cd -)
