@@ -83,17 +83,40 @@ func handleTelnetConnection(conn net.Conn) {
 		if len(buffer) > 0 {
 			log.Debug("Go willy, go")
 
-			_, err := conn.Write([]byte("What do you want?"))
+			cmd := CommandScanner(buffer)
 
-			if err != nil {
+			switch cmd.name {
+			case HELP:
+				reply(conn, "HELP")
+			case STATUS:
+				reply(conn, "STATUS")
+			case QUIT:
+				reply(conn, "QUIT")
 				conn.Close()
+			case SHOW:
+				reply(conn, "SHOW")
+			case DEST:
+				reply(conn, "Working with destination, doing: "+cmd.sub)
+			case UNDEF:
+				reply(conn, "I do not understand.")
+			default:
+				reply(conn, "I do not understand.")
+
 			}
 
-			conn.Close()
 		}
 
 	}
 
 	log.Debug("Connection from %v closed.", conn.RemoteAddr())
+
+}
+
+func reply(conn net.Conn, msg string) {
+	_, err := conn.Write([]byte(msg + "\n"))
+
+	if err != nil {
+		conn.Close()
+	}
 
 }
