@@ -1,5 +1,7 @@
 package admin
 
+import "strings"
+
 type Name int
 
 const (
@@ -8,13 +10,31 @@ const (
 	QUIT
 	DEST
 	SHOW
-	EOL
+	UNDEF
 )
 
 type Shellcommand struct {
 	name  Name
 	sub   string
 	param string
+}
+
+func ShellCommandNameForString(input string) Name {
+	switch strings.ToLower(input) {
+	case "status":
+		return STATUS
+	case "help":
+		return HELP
+	case "quit":
+		return QUIT
+	case "dest":
+		return DEST
+	case "show":
+		return SHOW
+	default:
+		return UNDEF
+
+	}
 }
 
 func (t Shellcommand) String() string {
@@ -26,6 +46,8 @@ func (t Shellcommand) String() string {
 		return "HELP"
 	case QUIT:
 		return "QUIT"
+	case SHOW:
+		return "SHOW"
 	case DEST:
 		return "DEST"
 	}

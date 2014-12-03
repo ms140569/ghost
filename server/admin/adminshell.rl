@@ -18,6 +18,7 @@ package admin
 
 import (
 	"github.com/ms140569/ghost/log"
+	"strings"
 )
 
 %%{
@@ -34,50 +35,60 @@ func command_lexer(data []byte) Shellcommand {
 	subCommand := "";
 	param := "";
 
+	valid := false;
+
 	%%{
 
 		action mark { mark = p }
 		
 		action saveBase { 
-			// log.Debug("SAVING: cs, p, pe - %d, %d, %d", cs, p, pe)
+			// log.Debug("saveBase() -> cs, p, pe - %d, %d, %d", cs, p, pe)
 			baseCommand = string(data[mark:p]); 
 			mark = p
 		}
 
 		action saveSub { 
-			// log.Debug("SAVING: cs, p, pe - %d, %d, %d", cs, p, pe)
-			subCommand = string(data[mark:p]); 
+			// log.Debug("saveSub -> cs, p, pe - %d, %d, %d", cs, p, pe)
+			subCommand = string(data[mark:p]);
+			mark = p
 		}
 
 		action saveParam { 
-			// log.Debug("SAVING: cs, p, pe - %d, %d, %d", cs, p, pe)
-			param = string(data[mark:p]); 
+			// log.Debug("saveParam -> cs, p, pe - %d, %d, %d", cs, p, pe)
+			param = strings.TrimSpace(string(data[mark:p]));
+			mark = p
 		}
 
-
-		action emitDest {
-			log.Debug("emmitting stuff: %s", string(data[0:pe]))
-			log.Debug("cs, p, pe - %d, %d, %d", cs, p, pe)
+		action validLine { 
+			// log.Debug("VALID LINE");
+			valid = true;
 		}
 
-		action emitSimple {
-			log.Debug("Emmitting simple command: %s", string(data[0:pe]))
-			log.Debug("cs, p, pe - %d, %d, %d", cs, p, pe)
-		}
 
 		eol = "\r"? . "\n";
 
-		simple_cmd = ("status" | "help" | "quit" | "show") >mark %saveBase;
+		# single commands
+
+		single_cmd = ("status" | "help" | "quit") >mark %saveBase;
+		single_with_param = "show" >mark %saveBase;
+
+		fetch_single_param = (single_with_param space+ ^space+ ) >mark %saveParam;
+
+		single_grp = ( single_cmd | fetch_single_param );
+
+		# destination related commands
 
 		base_cmd_dest = "dest" >mark %saveBase;
-		sub_cmd_dest = "list" | "create" | "delete" | "stat" %saveSub;
 
-		dest_grp = base_cmd_dest space sub_cmd_dest;
+		sub_cmd_dest_single = "list" >mark %saveSub;
+		sub_cmd_dest_param = "create" >mark %saveSub | "delete" >mark %saveSub | "stat" >mark %saveSub;
 
-		cmd = ( simple_cmd | dest_grp ) >mark;
+		fetch_dest_param = base_cmd_dest space+ sub_cmd_dest_param space+ ^space+ >mark %saveParam;
+		dest_grp = ( base_cmd_dest space sub_cmd_dest_single | fetch_dest_param );
 
-		lineval = cmd (space any+)? %saveParam;
-		line = lineval eol;
+		cmd = ( single_grp | dest_grp ) %validLine;
+
+		line = cmd eol;
 
 		main := line;
 
@@ -86,11 +97,16 @@ func command_lexer(data []byte) Shellcommand {
 
 	}%%
 
+    log.Debug("\n") 
     log.Debug("Command    : %s", baseCommand) 
 	log.Debug("Subcommand : %s", subCommand) 
 	log.Debug("Param      : %s", param) 
 
-	return Shellcommand{name : QUIT, sub: subCommand, param: param}
+	if valid {
+		return Shellcommand{name : ShellCommandNameForString(baseCommand), sub: subCommand, param: param}
+	} else {
+		return Shellcommand{name : UNDEF} 
+	}
 
 }
 
