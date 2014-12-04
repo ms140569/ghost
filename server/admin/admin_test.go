@@ -45,6 +45,23 @@ func TestCommandParsingBad(t *testing.T) {
 
 }
 
+func TestSubcommands(t *testing.T) {
+	cmd := CommandScanner(wrap("dest list"))
+	if cmd.sub != "list" {
+		t.Fatalf("List destination command not parsed correctly, found sub: %s", cmd.sub)
+	}
+
+	cmd = CommandScanner(wrap("dest create frumpy"))
+	if cmd.sub != "create" {
+		t.Fatalf("Create destination command not parsed correctly, found sub: %s", cmd.sub)
+	}
+
+	if cmd.param != "frumpy" {
+		t.Fatalf("Parameter not parsed correctly, found: %s", cmd.param)
+	}
+
+}
+
 func wrap(data string) []byte {
 	return []byte(data + "\n")
 }

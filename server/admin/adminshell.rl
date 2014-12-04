@@ -26,7 +26,10 @@ import (
         write data;
 }%%
 
-func command_lexer(data []byte) Shellcommand {
+func CommandScanner(data []byte) Shellcommand {
+
+	log.Debug("CommandScanner--------------------------------------");
+    log.Debug("Input      : %s", string(data));
 
 	cs, p, pe := 0, 0, len(data);
 	mark := 0;
@@ -37,33 +40,19 @@ func command_lexer(data []byte) Shellcommand {
 
 	valid := false;
 
+	save := func() string { retVal := string(data[mark:p]); mark = p; return retVal }
+
 	%%{
 
 		action mark { mark = p }
 		
-		action saveBase { 
-			// log.Debug("saveBase() -> cs, p, pe - %d, %d, %d", cs, p, pe)
-			baseCommand = string(data[mark:p]); 
-			mark = p
-		}
+		action saveBase { baseCommand = save(); }
 
-		action saveSub { 
-			// log.Debug("saveSub -> cs, p, pe - %d, %d, %d", cs, p, pe)
-			subCommand = string(data[mark:p]);
-			mark = p
-		}
+		action saveSub { subCommand = save(); }
 
-		action saveParam { 
-			// log.Debug("saveParam -> cs, p, pe - %d, %d, %d", cs, p, pe)
-			param = strings.TrimSpace(string(data[mark:p]));
-			mark = p
-		}
+		action saveParam { param = strings.TrimSpace(save()); }
 
-		action validLine { 
-			// log.Debug("VALID LINE");
-			valid = true;
-		}
-
+		action validLine { valid = true; }
 
 		eol = "\r"? . "\n";
 
@@ -107,13 +96,5 @@ func command_lexer(data []byte) Shellcommand {
 	} else {
 		return Shellcommand{name : UNDEF} 
 	}
-
-}
-
-func CommandScanner(content [] byte) Shellcommand {
-	log.Debug("CommandScanner--------------------------------------");
-    log.Debug("Input      : %s", string(content));
-
-	return command_lexer(content);
 
 }
