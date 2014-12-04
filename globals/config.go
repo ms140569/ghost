@@ -5,6 +5,7 @@ import (
 	"github.com/ms140569/ghost/constants"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/storage"
+	"os"
 	"strconv"
 )
 
@@ -67,11 +68,22 @@ func NewConfig(flagBundle FlagBundle) {
 
 	log.SetSystemLogLevelFromString(Config.Loglevel)
 
+	var storageName string
+	var err error
+
 	if len(configFile.Storage) > 0 {
-		Config.Storage = storage.New(configFile.Storage)
+		storageName = configFile.Storage
 	} else {
-		Config.Storage = storage.New("mem:")
+		storageName = "mem:"
 	}
+
+	Config.Storage, err = storage.New(storageName)
+
+	if err != nil {
+		log.Fatal(err.Error())
+		os.Exit(-5)
+	}
+
 }
 
 func (c *Configuration) GetServerGreeting() string {

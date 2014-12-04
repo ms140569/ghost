@@ -25,6 +25,7 @@ SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DI
 	$(SERVER_DIR)/heartbeat.go \
 	$(SERVER_DIR)/frameprocessor.go \
 	$(STORAGE_DIR)/storage.go \
+	$(STORAGE_DIR)/file.go \
 	$(STORAGE_DIR)/memory.go \
 	$(CONSTANTS_DIR)/constants.go \
 	log/logger.go log/level/level.go
@@ -62,6 +63,7 @@ test: all
 	(cd test/content-length;./run.sh)
 	go test github.com/ms140569/ghost/log/level
 	go test github.com/ms140569/ghost/parser
+	go test github.com/ms140569/ghost/storage
 	go test github.com/ms140569/ghost/server
 	go test github.com/ms140569/ghost/server/admin
 

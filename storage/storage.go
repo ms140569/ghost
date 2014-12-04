@@ -1,9 +1,10 @@
 package storage
 
 import (
+	"errors"
+	"fmt"
 	"github.com/ms140569/ghost/log"
 	"github.com/ms140569/ghost/parser"
-	"os"
 	"strings"
 )
 
@@ -35,20 +36,33 @@ sqlite3:
 
 */
 
-func New(configString string) Storekeeper {
-	arr := strings.Split(configString, ":")
-	method := arr[0]
-	config := arr[1]
+func New(configString string) (Storekeeper, error) {
+
+	var method string
+	var config string
+
+	if strings.Contains(configString, ":") {
+		arr := strings.Split(configString, ":")
+		method = arr[0]
+		config = arr[1]
+	} else {
+		method = configString
+		config = ""
+	}
 
 	// log.Debug("Creating storage provider for config: %s", configString)
 
 	switch method {
 	case "mem":
-		return NewMemory(config)
+		return NewMemory(config), nil
+	case "file":
+		return NewFileStorage(config), nil
 	default:
-		log.Fatal("Storage provider unkonwn: %s", method)
-		os.Exit(5)
+		msg := fmt.Sprintf("Storage provider unkonwn: %s", method)
+		log.Fatal(msg)
+		return nil, errors.New(msg)
+
 	}
 
-	return Memory{}
+	return nil, errors.New("No default storage provider. Supply configuration!")
 }
