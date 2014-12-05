@@ -15,6 +15,10 @@ type Storekeeper interface {
 	Initialize() error
 	SendFrame(destination string, frame parser.Frame) error
 	Subscribe(destination string, id string) error
+
+	// Destinations
+
+	ListDestinations() []string
 }
 
 /*

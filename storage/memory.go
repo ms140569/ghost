@@ -43,6 +43,10 @@ func (m Memory) Initialize() error {
 	return nil
 }
 
+func (m Memory) ListDestinations() []string {
+	return m.destinations
+}
+
 func (m Memory) SendFrame(dest string, frame parser.Frame) error {
 	log.Debug("Storing Frame at destination: %s", dest)
 	return nil

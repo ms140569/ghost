@@ -2,6 +2,7 @@ package admin
 
 import (
 	"github.com/ms140569/ghost/constants"
+	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"net"
 	"os"
@@ -114,6 +115,11 @@ func (cr CommandRunner) Execute() {
 		cr.reply("SHOW")
 	case DEST:
 		cr.reply("Working with destination, doing: " + cr.cmd.sub)
+
+		if cr.cmd.sub == "list" {
+			cr.ListDestinations()
+		}
+
 	case UNDEF:
 		cr.reply("I do not understand.")
 	default:
@@ -129,5 +135,20 @@ func (cr CommandRunner) reply(msg string) {
 	if err != nil {
 		cr.conn.Close()
 	}
+
+}
+
+func (cr CommandRunner) ListDestinations() {
+	cr.reply("Listing destinations:")
+
+	destinations := globals.Config.Storage.ListDestinations()
+
+	retVal := ""
+
+	for _, val := range destinations {
+		retVal = retVal + val + "\n"
+	}
+
+	cr.reply(retVal)
 
 }
