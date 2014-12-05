@@ -19,7 +19,7 @@ type Storekeeper interface {
 	// Destinations
 
 	ListDestinations() []string
-	CreateDestinattion(destination string) error
+	CreateDestination(destination string) error
 	DeleteDestination(destination string) error
 	StatusDestination(destination string) (string, error)
 }

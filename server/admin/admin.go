@@ -69,10 +69,7 @@ func handleTelnetConnection(conn net.Conn) {
 		buffer = buffer[0:n]
 
 		if len(buffer) > 0 {
-			log.Debug("Go willy, go")
-
 			cmd := CommandScanner(buffer)
-
 			runner := CommandRunner{conn: conn, cmd: cmd}
 			runner.Execute()
 		}
@@ -101,10 +98,15 @@ func (cr CommandRunner) Execute() {
 	case SHOW:
 		cr.reply("SHOW")
 	case DEST:
-		cr.reply("Working with destination, doing: " + cr.cmd.sub)
-
-		if cr.cmd.sub == "list" {
+		switch cr.cmd.sub {
+		case "list":
 			cr.ListDestinations()
+		case "create":
+			cr.CreateDestination()
+		case "delete":
+			cr.DeleteDestination()
+		case "stat":
+			cr.StatusDestination()
 		}
 
 	case UNDEF:
@@ -129,6 +131,39 @@ func (cr CommandRunner) ListDestinations() {
 	cr.reply("Listing destinations:")
 
 	cr.reply(StringArrayPrinter(ListDestinations()))
+
+}
+
+func (cr CommandRunner) CreateDestination() {
+	err := CreateDestination(cr.cmd.param)
+
+	if err != nil {
+		cr.reply(err.Error())
+	} else {
+		cr.reply("Done.")
+	}
+
+}
+
+func (cr CommandRunner) DeleteDestination() {
+	err := DeleteDestination(cr.cmd.param)
+
+	if err != nil {
+		cr.reply(err.Error())
+	} else {
+		cr.reply("Done.")
+	}
+
+}
+
+func (cr CommandRunner) StatusDestination() {
+	str, err := StatusDestination(cr.cmd.param)
+
+	if err != nil {
+		cr.reply(err.Error())
+	} else {
+		cr.reply(str)
+	}
 
 }
 

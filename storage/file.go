@@ -45,7 +45,7 @@ func (m FileStorage) ListDestinations() []string {
 	return m.destinations
 }
 
-func (m FileStorage) CreateDestinattion(destination string) error {
+func (m FileStorage) CreateDestination(destination string) error {
 	return nil
 }
 

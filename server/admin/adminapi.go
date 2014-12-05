@@ -8,14 +8,14 @@ func ListDestinations() []string {
 	return globals.Config.Storage.ListDestinations()
 }
 
-func CreateDestinattion(destination string) error {
-	return nil
+func CreateDestination(destination string) error {
+	return globals.Config.Storage.CreateDestination(destination)
 }
 
 func DeleteDestination(destination string) error {
-	return nil
+	return globals.Config.Storage.DeleteDestination(destination)
 }
 
 func StatusDestination(destination string) (string, error) {
-	return "", nil
+	return globals.Config.Storage.StatusDestination(destination)
 }

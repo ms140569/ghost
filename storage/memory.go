@@ -47,7 +47,9 @@ func (m Memory) ListDestinations() []string {
 	return m.destinations
 }
 
-func (m Memory) CreateDestinattion(destination string) error {
+func (m Memory) CreateDestination(destination string) error {
+	log.Debug("Creating destination: %s", destination)
+	m.destinations = append(m.destinations, destination)
 	return nil
 }
 
