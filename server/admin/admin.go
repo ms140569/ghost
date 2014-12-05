@@ -85,25 +85,8 @@ func handleTelnetConnection(conn net.Conn) {
 
 			cmd := CommandScanner(buffer)
 
-			switch cmd.name {
-			case HELP:
-				reply(conn, "HELP")
-			case STATUS:
-				reply(conn, "STATUS")
-			case QUIT:
-				reply(conn, "QUIT")
-				conn.Close()
-			case SHOW:
-				reply(conn, "SHOW")
-			case DEST:
-				reply(conn, "Working with destination, doing: "+cmd.sub)
-			case UNDEF:
-				reply(conn, "I do not understand.")
-			default:
-				reply(conn, "I do not understand.")
-
-			}
-
+			runner := CommandRunner{conn: conn, cmd: cmd}
+			runner.Execute()
 		}
 
 	}
@@ -112,11 +95,39 @@ func handleTelnetConnection(conn net.Conn) {
 
 }
 
-func reply(conn net.Conn, msg string) {
-	_, err := conn.Write([]byte(msg + "\n"))
+type CommandRunner struct {
+	conn net.Conn
+	cmd  Shellcommand
+}
+
+func (cr CommandRunner) Execute() {
+
+	switch cr.cmd.name {
+	case HELP:
+		cr.reply(HelpForAllCommands())
+	case STATUS:
+		cr.reply("STATUS")
+	case QUIT:
+		cr.reply("QUIT")
+		cr.conn.Close()
+	case SHOW:
+		cr.reply("SHOW")
+	case DEST:
+		cr.reply("Working with destination, doing: " + cr.cmd.sub)
+	case UNDEF:
+		cr.reply("I do not understand.")
+	default:
+		cr.reply("I do not understand.")
+
+	}
+
+}
+
+func (cr CommandRunner) reply(msg string) {
+	_, err := cr.conn.Write([]byte(msg + "\n"))
 
 	if err != nil {
-		conn.Close()
+		cr.conn.Close()
 	}
 
 }
