@@ -45,6 +45,18 @@ func (m FileStorage) ListDestinations() []string {
 	return m.destinations
 }
 
+func (m FileStorage) CreateDestinattion(destination string) error {
+	return nil
+}
+
+func (m FileStorage) DeleteDestination(destination string) error {
+	return nil
+}
+
+func (m FileStorage) StatusDestination(destination string) (string, error) {
+	return "", nil
+}
+
 func (m FileStorage) SendFrame(dest string, frame parser.Frame) error {
 	log.Debug("Storing Frame at destination: %s", dest)
 	return nil
