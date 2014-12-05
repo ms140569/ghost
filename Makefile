@@ -25,6 +25,9 @@ SRC = main.go $(PARSER_DIR)/command.go $(PARSER_DIR)/framebuilder.go $(PARSER_DI
 	$(SERVER_DIR)/heartbeat.go \
 	$(SERVER_DIR)/frameprocessor.go \
 	$(STORAGE_DIR)/storage.go \
+	$(ADMIN_DIR)/admin.go \
+	$(ADMIN_DIR)/adminapi.go \
+	$(ADMIN_DIR)/shellcommand.go \
 	$(STORAGE_DIR)/file.go \
 	$(STORAGE_DIR)/memory.go \
 	$(CONSTANTS_DIR)/constants.go \

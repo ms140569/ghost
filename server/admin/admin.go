@@ -2,24 +2,11 @@ package admin
 
 import (
 	"github.com/ms140569/ghost/constants"
-	"github.com/ms140569/ghost/globals"
 	"github.com/ms140569/ghost/log"
 	"net"
 	"os"
 	"strconv"
 )
-
-func ListDestinations() []string {
-	return make([]string, 3, 3)
-}
-
-func CreateDestinattion(destination string) {}
-
-func DeleteDestination(destination string) {}
-
-func StatusDestination(destination string) string {
-	return "nix"
-}
 
 func StartTelnetAdminServer() {
 
@@ -141,14 +128,17 @@ func (cr CommandRunner) reply(msg string) {
 func (cr CommandRunner) ListDestinations() {
 	cr.reply("Listing destinations:")
 
-	destinations := globals.Config.Storage.ListDestinations()
+	cr.reply(StringArrayPrinter(ListDestinations()))
 
+}
+
+func StringArrayPrinter(arr []string) string {
 	retVal := ""
 
-	for _, val := range destinations {
+	for _, val := range arr {
 		retVal = retVal + val + "\n"
 	}
 
-	cr.reply(retVal)
+	return retVal
 
 }
