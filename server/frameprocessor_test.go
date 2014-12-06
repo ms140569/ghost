@@ -21,7 +21,14 @@ func TestMissingHeaderOnSend1(t *testing.T) {
 func TestGoodSend(t *testing.T) {
 
 	globals.Config = globals.Configuration{}
-	globals.Config.Storage = storage.Memory{}
+
+	storage, err := storage.New("mem:")
+
+	if err != nil {
+		t.Fatalf("Problem creating in-memory storage: %s", err.Error())
+	}
+
+	globals.Config.Storage = storage
 
 	frame := parser.NewFrame(parser.SEND)
 	frame.AddHeader("destination:ok")

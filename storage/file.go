@@ -15,7 +15,7 @@ type FileStorage struct {
 	destinations []string
 }
 
-func NewFileStorage(configString string) FileStorage {
+func NewFileStorage(configString string) *FileStorage {
 
 	storage := FileStorage{}
 
@@ -34,35 +34,35 @@ func NewFileStorage(configString string) FileStorage {
 
 	storage.Dump()
 
-	return storage
+	return &storage
 }
 
-func (m FileStorage) Initialize() error {
+func (m *FileStorage) Initialize() error {
 	return nil
 }
 
-func (m FileStorage) ListDestinations() []string {
+func (m *FileStorage) ListDestinations() []string {
 	return m.destinations
 }
 
-func (m FileStorage) CreateDestination(destination string) error {
+func (m *FileStorage) CreateDestination(destination string) error {
 	return nil
 }
 
-func (m FileStorage) DeleteDestination(destination string) error {
+func (m *FileStorage) DeleteDestination(destination string) error {
 	return nil
 }
 
-func (m FileStorage) StatusDestination(destination string) (string, error) {
+func (m *FileStorage) StatusDestination(destination string) (string, error) {
 	return "", nil
 }
 
-func (m FileStorage) SendFrame(dest string, frame parser.Frame) error {
+func (m *FileStorage) SendFrame(dest string, frame parser.Frame) error {
 	log.Debug("Storing Frame at destination: %s", dest)
 	return nil
 }
 
-func (m FileStorage) Subscribe(destination string, id string) error {
+func (m *FileStorage) Subscribe(destination string, id string) error {
 	log.Debug("Subscribe to destination %s using id: %s", destination, id)
 
 	found := false
@@ -83,7 +83,7 @@ func (m FileStorage) Subscribe(destination string, id string) error {
 	return nil
 }
 
-func (m FileStorage) Dump() {
+func (m *FileStorage) Dump() {
 	log.Debug("Memory storage provider dump:")
 	for _, dest := range m.destinations {
 		log.Debug("Destination: %s", dest)

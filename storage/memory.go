@@ -16,7 +16,7 @@ type Memory struct {
 	destinations []string
 }
 
-func NewMemory(configString string) Memory {
+func NewMemory(configString string) *Memory {
 
 	memory := Memory{}
 
@@ -36,37 +36,37 @@ func NewMemory(configString string) Memory {
 
 	memory.Dump()
 
-	return memory
+	return &memory
 }
 
-func (m Memory) Initialize() error {
+func (m *Memory) Initialize() error {
 	return nil
 }
 
-func (m Memory) ListDestinations() []string {
+func (m *Memory) ListDestinations() []string {
 	return m.destinations
 }
 
-func (m Memory) CreateDestination(destination string) error {
+func (m *Memory) CreateDestination(destination string) error {
 	log.Debug("Creating destination: %s", destination)
 	m.destinations = append(m.destinations, destination)
 	return nil
 }
 
-func (m Memory) DeleteDestination(destination string) error {
+func (m *Memory) DeleteDestination(destination string) error {
 	return nil
 }
 
-func (m Memory) StatusDestination(destination string) (string, error) {
+func (m *Memory) StatusDestination(destination string) (string, error) {
 	return "", nil
 }
 
-func (m Memory) SendFrame(dest string, frame parser.Frame) error {
+func (m *Memory) SendFrame(dest string, frame parser.Frame) error {
 	log.Debug("Storing Frame at destination: %s", dest)
 	return nil
 }
 
-func (m Memory) Subscribe(destination string, id string) error {
+func (m *Memory) Subscribe(destination string, id string) error {
 	log.Debug("Subscribe to destination %s using id: %s", destination, id)
 
 	found := false
@@ -87,7 +87,7 @@ func (m Memory) Subscribe(destination string, id string) error {
 	return nil
 }
 
-func (m Memory) Dump() {
+func (m *Memory) Dump() {
 	log.Debug("Memory storage provider dump:")
 	for _, dest := range m.destinations {
 		log.Debug("Destination: %s", dest)
